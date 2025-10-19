@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Borang Pergerakan Kakitangan SKM</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f9;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            min-height: 100vh;
+        }
+        .container {
+            background-color: #fff;
+            padding: 25px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 500px;
+        }
+        h2 { text-align: center; color: #333; }
+        .form-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; font-weight: bold; }
+        input, select, textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        button {
+            width: 100%;
+            padding: 12px;
+            background-color: #0056b3;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        button:hover { background-color: #004494; }
+
+        /* --- BAHAGIAN BARU: Gaya untuk Mesej Kejayaan --- */
+        #success-message {
+            display: none; /* Sembunyikan secara lalai */
+            text-align: center;
+            padding: 40px 20px;
+        }
+        #success-message h2 {
+            color: #28a745; /* Warna hijau */
+            margin-bottom: 15px;
+        }
+        #success-message p {
+            font-size: 1.1em;
+            color: #555;
+            margin-bottom: 30px;
+        }
+        #success-message button {
+            background-color: #28a745;
+        }
+         #success-message button:hover {
+            background-color: #218838;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        
+        <div id="borang-utama">
+            <h2>Sistem Pergerakan Kakitangan SKM</h2>
+            <form id="pergerakan-form">
+                <div class="form-group">
+                    <label for="nama_staf">Nama Penuh:</label>
+                    <input type="text" id="nama_staf" name="nama_staf" required>
+                </div>
+                <div class="form-group">
+                    <label for="jenis_pergerakan">Jenis Pergerakan:</label>
+                    <select id="jenis_pergerakan" name="jenis_pergerakan" required>
+                        <option value="">-- Sila Pilih --</option>
+                        <option value="Urusan Rasmi">Urusan Rasmi</option>
+                        <option value="Kursus/Latihan">Kursus/Latihan</option>
+                        <option value="Bekerja Dari Rumah">Bekerja Dari Rumah</option>
+                        <option value="Urusan Peribadi">Urusan Peribadi</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="destinasi">Destinasi/Lokasi:</label>
+                    <input type="text" id="destinasi" name="destinasi" required>
+                </div>
+                <div class="form-group">
+                    <label for="tarikh_mula">Tarikh:</label>
+                    <input type="date" id="tarikh_mula" name="tarikh_mula" required>
+                </div>
+                <div class="form-group">
+                    <label for="masa_pergi">Masa Pergi:</label>
+                    <input type="time" id="masa_pergi" name="masa_pergi" required>
+                </div>
+                <div class="form-group">
+                    <label for="tujuan">Tujuan:</label>
+                    <textarea id="tujuan" name="tujuan" rows="3" required></textarea>
+                </div>
+                <button type="submit">Hantar Permohonan</button>
+            </form>
+        </div>
+
+        <div id="success-message">
+            <h2>Permohonan Berjaya! ✅</h2>
+            <p>Terima kasih. Permohonan anda telah berjaya direkodkan.</p>
+            <button id="kembali-button">Buat Permohonan Lain</button>
+        </div>
+
+    </div>
+
+    <script>
+        const form = document.getElementById('pergerakan-form');
+        const borangUtama = document.getElementById('borang-utama');
+        const successMessage = document.getElementById('success-message');
+        const kembaliButton = document.getElementById('kembali-button');
+
+        // Apabila borang dihantar...
+        form.addEventListener('submit', async function(event) {
+            event.preventDefault(); // Halang borang dari refresh halaman
+
+            // Dapatkan semua data dari borang
+            const formData = new FormData(form);
+            const data = new URLSearchParams(formData);
+
+            try {
+                // Hantar data ke server secara senyap
+                const response = await fetch('http://localhost:3000/submit-mohon', {
+                    method: 'POST',
+                    body: data
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    // Jika berjaya, sembunyikan borang dan tunjukkan mesej kejayaan
+                    borangUtama.style.display = 'none';
+                    successMessage.style.display = 'block';
+                } else {
+                    // Jika server hantar ralat
+                    alert('Gagal menghantar permohonan. Sila cuba lagi.');
+                }
+            } catch (error) {
+                console.error('Ralat:', error);
+                alert('Tidak dapat berhubung dengan server. Pastikan server sedang berjalan.');
+            }
+        });
+
+        // Apabila butang "Kembali" ditekan...
+        kembaliButton.addEventListener('click', function() {
+            // Sembunyikan mesej dan tunjukkan semula borang
+            successMessage.style.display = 'none';
+            borangUtama.style.display = 'block';
+            form.reset(); // Kosongkan borang untuk permohonan baru
+        });
+    </script>
+</body>
+</html>
