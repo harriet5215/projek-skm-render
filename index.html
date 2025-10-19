@@ -23,8 +23,23 @@
             width: 100%;
             max-width: 500px;
         }
-        h2 { text-align: center; color: #333; }
+        h2 { text-align: center; color: #333; margin-bottom: 5px; }
+        /* ## GAYA BARU UNTUK JAM ## */
+        #live-clock {
+            text-align: center;
+            color: #555;
+            font-size: 0.9em;
+            margin-bottom: 25px;
+        }
         .form-group { margin-bottom: 15px; }
+        /* ## GAYA BARU UNTUK TARIKH BERGANDA ## */
+        .date-group {
+            display: flex;
+            gap: 10px;
+        }
+        .date-group .form-group {
+            width: 50%;
+        }
         label { display: block; margin-bottom: 5px; font-weight: bold; }
         input, select, textarea {
             width: 100%;
@@ -44,27 +59,12 @@
             font-size: 16px;
         }
         button:hover { background-color: #004494; }
-        #success-message {
-            display: none;
-            text-align: center;
-            padding: 40px 20px;
-        }
-        #success-message h2 {
-            color: #28a745;
-            margin-bottom: 15px;
-        }
-        #success-message p {
-            font-size: 1.1em;
-            color: #555;
-            margin-bottom: 30px;
-        }
+        #success-message { display: none; text-align: center; padding: 40px 20px; }
+        #success-message h2 { color: #28a745; margin-bottom: 15px; }
+        #success-message p { font-size: 1.1em; color: #555; margin-bottom: 30px; }
         #success-message button { background-color: #28a745; }
         #success-message button:hover { background-color: #218838; }
-        .nav-link {
-            display: block;
-            text-align: center;
-            margin-top: 20px;
-        }
+        .nav-link { display: block; text-align: center; margin-top: 20px; }
     </style>
 </head>
 <body>
@@ -72,6 +72,8 @@
         
         <div id="borang-utama">
             <h2>Sistem Pergerakan Kakitangan SKM</h2>
+            <p id="live-clock"></p>
+            
             <form id="pergerakan-form">
                 <div class="form-group">
                     <label for="nama_staf">Nama Penuh:</label>
@@ -96,10 +98,18 @@
                     <label for="destinasi">Destinasi/Lokasi:</label>
                     <input type="text" id="destinasi" name="destinasi" required>
                 </div>
-                <div class="form-group">
-                    <label for="tarikh_mula">Tarikh:</label>
-                    <input type="date" id="tarikh_mula" name="tarikh_mula" required>
+                
+                <div class="date-group">
+                    <div class="form-group">
+                        <label for="tarikh_mula">Tarikh Mula:</label>
+                        <input type="date" id="tarikh_mula" name="tarikh_mula" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="tarikh_akhir">Tarikh Akhir:</label>
+                        <input type="date" id="tarikh_akhir" name="tarikh_akhir" required>
+                    </div>
                 </div>
+
                 <div class="form-group">
                     <label for="masa_pergi">Masa Pergi:</label>
                     <input type="time" id="masa_pergi" name="masa_pergi" required>
@@ -130,6 +140,16 @@
         // PASTIKAN URL SERVER RENDER ANDA BETUL
         const SERVER_URL = 'https://projek-skm-server.onrender.com/submit-mohon';
 
+        // ## SKRIP BARU: UNTUK JAM MASA NYATA ##
+        const clockElement = document.getElementById('live-clock');
+        function updateClock() {
+            const now = new Date();
+            const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit' };
+            clockElement.textContent = now.toLocaleDateString('ms-MY', options);
+        }
+        setInterval(updateClock, 1000); // Kemas kini setiap saat
+        updateClock(); // Panggil sekali untuk paparan segera
+
         form.addEventListener('submit', async function(event) {
             event.preventDefault();
             const submitButton = form.querySelector('button[type="submit"]');
@@ -144,9 +164,7 @@
                     method: 'POST',
                     body: data
                 });
-
                 const result = await response.json();
-
                 if (result.success) {
                     borangUtama.style.display = 'none';
                     successMessage.style.display = 'block';
