@@ -8,9 +8,9 @@
         body { font-family: Arial, sans-serif; background-color: #f4f4f9; margin: 0; padding: 20px; }
         .container { max-width: 1200px; margin: auto; background-color: #fff; padding: 25px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1); }
         h2 { text-align: center; color: #333; border-bottom: 2px solid #eee; padding-bottom: 10px; }
-        .controls-container { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 15px; }
-        .filter-container { display: flex; gap: 10px; align-items: center; }
-        input[type="date"], button { padding: 10px; border-radius: 5px; border: 1px solid #ccc; font-size: 14px; }
+        .controls-container { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 20px; }
+        .filter-group { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+        input[type="date"], input[type="text"], button { padding: 10px; border-radius: 5px; border: 1px solid #ccc; font-size: 14px; }
         button { cursor: pointer; background-color: #0056b3; color: white; border-color: #0056b3; }
         button:hover { background-color: #004494; }
         #print-button { background-color: #28a745; border-color: #28a745; }
@@ -21,11 +21,10 @@
         .nav-link { display: block; text-align: center; margin-top: 20px; }
         #loading { text-align: center; padding: 50px; font-size: 1.2em; color: #888; }
         
-        /* Styles for printing */
         @media print {
             body { background-color: #fff; padding: 0; }
             .container { box-shadow: none; border: 1px solid #ccc; }
-            .controls-container, .nav-link, #user-info { display: none; }
+            .controls-container, .nav-link { display: none; }
             h2 { text-align: center; }
         }
     </style>
@@ -34,9 +33,13 @@
     <div class="container">
         <h2>Dashboard Rekod Pergerakan Staf</h2>
         <div class="controls-container">
-            <div class="filter-container">
-                <label for="filter-tarikh">Pilih Tarikh:</label>
+            <div class="filter-group">
+                <label for="filter-tarikh">Saring Tarikh Mula:</label>
                 <input type="date" id="filter-tarikh">
+                
+                <label for="filter-nama">Saring Nama:</label>
+                <input type="text" id="filter-nama" placeholder="Taip nama staf...">
+                
                 <button id="reset-button">Papar Semua</button>
             </div>
             <button id="print-button">🖨️ Cetak Laporan</button>
@@ -48,17 +51,18 @@
     </div>
 
     <script>
-        // Replace with your actual Render server URL
+        // Gantikan dengan URL server Render anda yang sebenar
         const API_SERVER_URL = 'https://projek-skm-server.onrender.com';
         
         const rekodContainer = document.getElementById('rekod-container');
         const loadingElement = document.getElementById('loading');
         const filterTarikhInput = document.getElementById('filter-tarikh');
+        // ## BAHAGIAN BARU: DAPATKAN ELEMEN PENAPIS NAMA ##
+        const filterNamaInput = document.getElementById('filter-nama');
         const resetButton = document.getElementById('reset-button');
         const printButton = document.getElementById('print-button');
-        let semuaRekod = []; // Store all records here
+        let semuaRekod = [];
 
-        // Function to fetch records from the server
         async function muatNaikRekod() {
             loadingElement.style.display = 'block';
             rekodContainer.innerHTML = '';
@@ -66,16 +70,15 @@
             
             try {
                 const response = await fetch(`${API_SERVER_URL}/get-rekod`);
-                if (!response.ok) throw new Error('Failed to get response from server');
+                if (!response.ok) throw new Error('Gagal mendapat respons dari server');
                 semuaRekod = await response.json();
                 paparkanRekod(semuaRekod);
             } catch (error) {
-                console.error('Error fetching records:', error);
+                console.error('Ralat memuat turun rekod:', error);
                 rekodContainer.innerHTML = '<p style="color: red; text-align: center;">Gagal memuat turun rekod.</p>';
             }
         }
 
-        // Function to display records in a table
         function paparkanRekod(data) {
             loadingElement.style.display = 'none';
             if (!data || data.length === 0) {
@@ -83,24 +86,35 @@
                 return;
             }
             
-            // Sort data by timestamp, newest first
             data.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
             
             const table = document.createElement('table');
             table.innerHTML = `
                 <thead>
                     <tr>
-                        <th>Timestamp</th> <th>Nama Staf</th> <th>Jenis Pergerakan</th> <th>Destinasi</th>
-                        <th>Tarikh</th> <th>Masa Pergi</th> <th>Tujuan</th> <th>Status</th>
+                        <th>Timestamp</th>
+                        <th>Nama Staf</th>
+                        <th>Jenis Pergerakan</th>
+                        <th>Destinasi</th>
+                        <th>Tarikh Mula</th>
+                        <th>Tarikh Akhir</th>
+                        <th>Masa Pergi</th>
+                        <th>Tujuan</th>
+                        <th>Status</th>
                     </tr>
                 </thead>
                 <tbody>
                     ${data.map(rekod => `
                         <tr>
-                            <td>${rekod.timestamp || ''}</td> <td>${rekod.nama_staf || ''}</td>
-                            <td>${rekod.jenis_pergerakan || ''}</td> <td>${rekod.destinasi || ''}</td>
-                            <td>${rekod.tarikh_mula || ''}</td> <td>${rekod.masa_pergi || ''}</td>
-                            <td>${rekod.tujuan || ''}</td> <td>${rekod.status || ''}</td>
+                            <td>${rekod.timestamp || ''}</td>
+                            <td>${rekod.nama_staf || ''}</td>
+                            <td>${rekod.jenis_pergerakan || ''}</td>
+                            <td>${rekod.destinasi || ''}</td>
+                            <td>${rekod.tarikh_mula || ''}</td>
+                            <td>${rekod.tarikh_akhir || ''}</td>
+                            <td>${rekod.masa_pergi || ''}</td>
+                            <td>${rekod.tujuan || ''}</td>
+                            <td>${rekod.status || ''}</td>
                         </tr>
                     `).join('')}
                 </tbody>
@@ -110,32 +124,41 @@
             rekodContainer.appendChild(table);
         }
 
-        // Function to filter records based on the selected date
+        // ## FUNGSI BARU: LOGIK PENAPISAN YANG DIPERTINGKAT ##
         function saringRekod() {
             const tarikhDipilih = filterTarikhInput.value;
-            if (!tarikhDipilih) {
-                paparkanRekod(semuaRekod);
-                return;
+            const namaDimasukkan = filterNamaInput.value.toLowerCase();
+            
+            let rekodDisaring = semuaRekod;
+
+            // Saring mengikut tarikh jika diisi
+            if (tarikhDipilih) {
+                rekodDisaring = rekodDisaring.filter(rekod => rekod.tarikh_mula === tarikhDipilih);
             }
-            const rekodDisaring = semuaRekod.filter(rekod => rekod.tarikh_mula === tarikhDipilih);
+
+            // Saring mengikut nama jika diisi
+            if (namaDimasukkan) {
+                rekodDisaring = rekodDisaring.filter(rekod => 
+                    rekod.nama_staf && rekod.nama_staf.toLowerCase().includes(namaDimasukkan)
+                );
+            }
+            
             paparkanRekod(rekodDisaring);
         }
 
-        // --- Event Listeners ---
-        
-        // Load all records when the page is ready
+        // Event Listeners
         document.addEventListener('DOMContentLoaded', muatNaikRekod);
-        
-        // Filter records when a date is selected
-        filterTarikhInput.addEventListener('change', saringRekod);
 
-        // Show all records when the reset button is clicked
+        // Panggil fungsi saring apabila mana-mana input berubah
+        filterTarikhInput.addEventListener('change', saringRekod);
+        filterNamaInput.addEventListener('input', saringRekod);
+
         resetButton.addEventListener('click', () => {
             filterTarikhInput.value = '';
+            filterNamaInput.value = '';
             paparkanRekod(semuaRekod);
         });
         
-        // CORRECTED PRINT LOGIC: Just print the current view
         printButton.addEventListener('click', () => {
             window.print();
         });

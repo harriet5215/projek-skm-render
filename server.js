@@ -4,24 +4,24 @@ const axios = require('axios');
 const cors = require('cors');
 
 const app = express();
-// Render akan tetapkan PORT secara automatik
+// Render will set the PORT automatically
 const port = process.env.PORT || 3000;
 
-// Guna CORS untuk membenarkan akses dari mana-mana domain
+// Use CORS to allow access from any domain
 app.use(cors());
 
-// Middleware untuk membaca data dari borang
+// Middleware to read data from the form
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 
-// Laluan utama untuk mengesahkan server berjalan
+// Main route to confirm the server is running
 app.get('/', (req, res) => {
     res.send('Server Pergerakan Staf SKM sedang berjalan.');
 });
 
-// Laluan untuk menerima data permohonan dari borang.html
+// Route to receive application data from index.html
 app.post('/submit-mohon', async (req, res) => {
-    // Ambil URL SheetDB dari Environment Variables di Render
+    // Get the SheetDB API URL from Environment Variables on Render
     const SHEETDB_API_URL = process.env.SHEETDB_API_URL;
     
     if (!SHEETDB_API_URL) {
@@ -35,6 +35,8 @@ app.post('/submit-mohon', async (req, res) => {
             jenis_pergerakan: req.body.jenis_pergerakan,
             destinasi: req.body.destinasi,
             tarikh_mula: req.body.tarikh_mula,
+            // ## PERUBAHAN DI SINI: TAMBAH TARIKH AKHIR ##
+            tarikh_akhir: req.body.tarikh_akhir,
             masa_pergi: req.body.masa_pergi,
             tujuan: req.body.tujuan,
             status: 'BARU'
@@ -51,7 +53,7 @@ app.post('/submit-mohon', async (req, res) => {
     }
 });
 
-// Laluan untuk dashboard.html mengambil semua rekod
+// Route for dashboard.html to fetch all records
 app.get('/get-rekod', async (req, res) => {
     const SHEETDB_API_URL = process.env.SHEETDB_API_URL;
 
