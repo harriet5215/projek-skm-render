@@ -20,9 +20,8 @@
         th { background-color: #f2f2f2; font-weight: bold; }
         .nav-link { display: block; text-align: center; margin-top: 20px; }
         #loading { text-align: center; padding: 50px; font-size: 1.2em; color: #888; }
-        #user-info { display: flex; justify-content: space-between; align-items: center; background-color: #f0f0f0; padding: 8px 12px; border-radius: 5px; margin-bottom: 20px; }
-        #logout-button { background-color: #dc3545; font-size: 12px; padding: 8px 12px; width: auto; }
         
+        /* Styles for printing */
         @media print {
             body { background-color: #fff; padding: 0; }
             .container { box-shadow: none; border: 1px solid #ccc; }
@@ -32,58 +31,34 @@
     </style>
 </head>
 <body>
-    <div id="app-content" style="display: none;">
-        <div class="container">
-            <div id="user-info">
-                <span id="user-name"></span>
-                <button id="logout-button">Log Keluar</button>
+    <div class="container">
+        <h2>Dashboard Rekod Pergerakan Staf</h2>
+        <div class="controls-container">
+            <div class="filter-container">
+                <label for="filter-tarikh">Pilih Tarikh:</label>
+                <input type="date" id="filter-tarikh">
+                <button id="reset-button">Papar Semua</button>
             </div>
-
-            <h2>Dashboard Rekod Pergerakan Staf</h2>
-            <div class="controls-container">
-                <div class="filter-container">
-                    <label for="filter-tarikh">Saring Ikut Tarikh:</label>
-                    <input type="date" id="filter-tarikh">
-                    <button id="reset-button">Papar Semua</button>
-                </div>
-                <button id="print-button">🖨️ Cetak Laporan</button>
-            </div>
-            <div id="rekod-container">
-                <p id="loading">Memuat turun rekod...</p>
-            </div>
-            <a href="index.html" class="nav-link">Kembali ke Borang Permohonan</a>
+            <button id="print-button">🖨️ Cetak Laporan</button>
         </div>
+        <div id="rekod-container">
+            <p id="loading">Memuat turun rekod...</p>
+        </div>
+        <a href="index.html" class="nav-link">Kembali ke Borang Permohonan</a>
     </div>
 
     <script>
-        // Gantikan dengan URL server Render anda yang sebenar
+        // Replace with your actual Render server URL
         const API_SERVER_URL = 'https://projek-skm-server.onrender.com';
         
-        const appContent = document.getElementById('app-content');
         const rekodContainer = document.getElementById('rekod-container');
         const loadingElement = document.getElementById('loading');
         const filterTarikhInput = document.getElementById('filter-tarikh');
         const resetButton = document.getElementById('reset-button');
         const printButton = document.getElementById('print-button');
-        const userNameElement = document.getElementById('user-name');
-        const logoutButton = document.getElementById('logout-button');
-        let semuaRekod = [];
+        let semuaRekod = []; // Store all records here
 
-        // FUNGSI KESELAMATAN: Semak jika pengguna sudah log masuk
-        document.addEventListener('DOMContentLoaded', () => {
-            const userInfo = sessionStorage.getItem('userInfo');
-            if (userInfo) {
-                const user = JSON.parse(userInfo);
-                appContent.style.display = 'block'; // Tunjukkan aplikasi
-                userNameElement.textContent = `Helo, ${user.nama}`;
-                muatNaikRekod(); // Mula muat turun rekod
-            } else {
-                // Jika tidak log masuk, hantar ke halaman utama
-                alert("Sila log masuk untuk melihat dashboard.");
-                window.location.href = 'index.html';
-            }
-        });
-
+        // Function to fetch records from the server
         async function muatNaikRekod() {
             loadingElement.style.display = 'block';
             rekodContainer.innerHTML = '';
@@ -91,15 +66,16 @@
             
             try {
                 const response = await fetch(`${API_SERVER_URL}/get-rekod`);
-                if (!response.ok) throw new Error('Gagal mendapat respons dari server');
+                if (!response.ok) throw new Error('Failed to get response from server');
                 semuaRekod = await response.json();
                 paparkanRekod(semuaRekod);
             } catch (error) {
-                console.error('Ralat memuat turun rekod:', error);
+                console.error('Error fetching records:', error);
                 rekodContainer.innerHTML = '<p style="color: red; text-align: center;">Gagal memuat turun rekod.</p>';
             }
         }
 
+        // Function to display records in a table
         function paparkanRekod(data) {
             loadingElement.style.display = 'none';
             if (!data || data.length === 0) {
@@ -107,6 +83,7 @@
                 return;
             }
             
+            // Sort data by timestamp, newest first
             data.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
             
             const table = document.createElement('table');
@@ -133,6 +110,7 @@
             rekodContainer.appendChild(table);
         }
 
+        // Function to filter records based on the selected date
         function saringRekod() {
             const tarikhDipilih = filterTarikhInput.value;
             if (!tarikhDipilih) {
@@ -143,22 +121,23 @@
             paparkanRekod(rekodDisaring);
         }
 
-        // Event Listeners
+        // --- Event Listeners ---
+        
+        // Load all records when the page is ready
+        document.addEventListener('DOMContentLoaded', muatNaikRekod);
+        
+        // Filter records when a date is selected
         filterTarikhInput.addEventListener('change', saringRekod);
 
+        // Show all records when the reset button is clicked
         resetButton.addEventListener('click', () => {
             filterTarikhInput.value = '';
             paparkanRekod(semuaRekod);
         });
         
-        // Logik cetak yang telah dibaiki
+        // CORRECTED PRINT LOGIC: Just print the current view
         printButton.addEventListener('click', () => {
             window.print();
-        });
-
-        logoutButton.addEventListener('click', () => {
-            sessionStorage.removeItem('userInfo');
-            window.location.href = 'index.html';
         });
     </script>
 </body>
