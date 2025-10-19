@@ -20,41 +20,69 @@
         th { background-color: #f2f2f2; font-weight: bold; }
         .nav-link { display: block; text-align: center; margin-top: 20px; }
         #loading { text-align: center; padding: 50px; font-size: 1.2em; color: #888; }
+        #user-info { display: flex; justify-content: space-between; align-items: center; background-color: #f0f0f0; padding: 8px 12px; border-radius: 5px; margin-bottom: 20px; }
+        #logout-button { background-color: #dc3545; font-size: 12px; padding: 8px 12px; width: auto; }
+        
         @media print {
             body { background-color: #fff; padding: 0; }
             .container { box-shadow: none; border: 1px solid #ccc; }
-            .controls-container, .nav-link { display: none; }
+            .controls-container, .nav-link, #user-info { display: none; }
             h2 { text-align: center; }
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h2>Dashboard Rekod Pergerakan Staf</h2>
-        <div class="controls-container">
-            <div class="filter-container">
-                <label for="filter-tarikh">Pilih Tarikh:</label>
-                <input type="date" id="filter-tarikh">
-                <button id="reset-button">Papar Semua</button>
+    <div id="app-content" style="display: none;">
+        <div class="container">
+            <div id="user-info">
+                <span id="user-name"></span>
+                <button id="logout-button">Log Keluar</button>
             </div>
-            <button id="print-button">🖨️ Cetak Laporan Hari Ini</button>
+
+            <h2>Dashboard Rekod Pergerakan Staf</h2>
+            <div class="controls-container">
+                <div class="filter-container">
+                    <label for="filter-tarikh">Saring Ikut Tarikh:</label>
+                    <input type="date" id="filter-tarikh">
+                    <button id="reset-button">Papar Semua</button>
+                </div>
+                <button id="print-button">🖨️ Cetak Laporan</button>
+            </div>
+            <div id="rekod-container">
+                <p id="loading">Memuat turun rekod...</p>
+            </div>
+            <a href="index.html" class="nav-link">Kembali ke Borang Permohonan</a>
         </div>
-        <div id="rekod-container">
-            <p id="loading">Memuat turun rekod...</p>
-        </div>
-        <a href="index.html" class="nav-link">Kembali ke Borang Permohonan</a>
     </div>
 
     <script>
-        // GANTIKAN DENGAN URL SERVER RENDER ANDA
+        // Gantikan dengan URL server Render anda yang sebenar
         const API_SERVER_URL = 'https://projek-skm-server.onrender.com';
         
+        const appContent = document.getElementById('app-content');
         const rekodContainer = document.getElementById('rekod-container');
         const loadingElement = document.getElementById('loading');
         const filterTarikhInput = document.getElementById('filter-tarikh');
         const resetButton = document.getElementById('reset-button');
         const printButton = document.getElementById('print-button');
-        let semuaRekod = []; // Simpan semua rekod di sini
+        const userNameElement = document.getElementById('user-name');
+        const logoutButton = document.getElementById('logout-button');
+        let semuaRekod = [];
+
+        // FUNGSI KESELAMATAN: Semak jika pengguna sudah log masuk
+        document.addEventListener('DOMContentLoaded', () => {
+            const userInfo = sessionStorage.getItem('userInfo');
+            if (userInfo) {
+                const user = JSON.parse(userInfo);
+                appContent.style.display = 'block'; // Tunjukkan aplikasi
+                userNameElement.textContent = `Helo, ${user.nama}`;
+                muatNaikRekod(); // Mula muat turun rekod
+            } else {
+                // Jika tidak log masuk, hantar ke halaman utama
+                alert("Sila log masuk untuk melihat dashboard.");
+                window.location.href = 'index.html';
+            }
+        });
 
         async function muatNaikRekod() {
             loadingElement.style.display = 'block';
@@ -115,25 +143,22 @@
             paparkanRekod(rekodDisaring);
         }
 
-        function dapatkanTarikhHariIni() {
-            const today = new Date();
-            const year = today.getFullYear();
-            const month = String(today.getMonth() + 1).padStart(2, '0');
-            const day = String(today.getDate()).padStart(2, '0');
-            return `${year}-${month}-${day}`;
-        }
-
-        document.addEventListener('DOMContentLoaded', muatNaikRekod);
+        // Event Listeners
         filterTarikhInput.addEventListener('change', saringRekod);
+
         resetButton.addEventListener('click', () => {
             filterTarikhInput.value = '';
             paparkanRekod(semuaRekod);
         });
+        
+        // Logik cetak yang telah dibaiki
         printButton.addEventListener('click', () => {
-            const tarikhHariIni = dapatkanTarikhHariIni();
-            const rekodHariIni = semuaRekod.filter(rekod => rekod.tarikh_mula === tarikhHariIni);
-            paparkanRekod(rekodHariIni);
-            setTimeout(window.print, 500);
+            window.print();
+        });
+
+        logoutButton.addEventListener('click', () => {
+            sessionStorage.removeItem('userInfo');
+            window.location.href = 'index.html';
         });
     </script>
 </body>
