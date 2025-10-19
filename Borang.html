@@ -13,6 +13,7 @@
             align-items: center;
             padding: 20px;
             min-height: 100vh;
+            margin: 0;
         }
         .container {
             background-color: #fff;
@@ -43,15 +44,13 @@
             font-size: 16px;
         }
         button:hover { background-color: #004494; }
-
-        /* --- BAHAGIAN BARU: Gaya untuk Mesej Kejayaan --- */
         #success-message {
-            display: none; /* Sembunyikan secara lalai */
+            display: none;
             text-align: center;
             padding: 40px 20px;
         }
         #success-message h2 {
-            color: #28a745; /* Warna hijau */
+            color: #28a745;
             margin-bottom: 15px;
         }
         #success-message p {
@@ -59,11 +58,12 @@
             color: #555;
             margin-bottom: 30px;
         }
-        #success-message button {
-            background-color: #28a745;
-        }
-         #success-message button:hover {
-            background-color: #218838;
+        #success-message button { background-color: #28a745; }
+        #success-message button:hover { background-color: #218838; }
+        .nav-link {
+            display: block;
+            text-align: center;
+            margin-top: 20px;
         }
     </style>
 </head>
@@ -105,6 +105,7 @@
                 </div>
                 <button type="submit">Hantar Permohonan</button>
             </form>
+            <a href="dashboard.html" class="nav-link">Lihat Dashboard Rekod</a>
         </div>
 
         <div id="success-message">
@@ -120,18 +121,21 @@
         const borangUtama = document.getElementById('borang-utama');
         const successMessage = document.getElementById('success-message');
         const kembaliButton = document.getElementById('kembali-button');
+        
+        // GANTIKAN DENGAN URL SERVER RENDER ANDA
+        const SERVER_URL = 'https://projek-skm-server.onrender.com/submit-mohon';
 
-        // Apabila borang dihantar...
         form.addEventListener('submit', async function(event) {
-            event.preventDefault(); // Halang borang dari refresh halaman
+            event.preventDefault();
+            const submitButton = form.querySelector('button[type="submit"]');
+            submitButton.textContent = 'Menghantar...';
+            submitButton.disabled = true;
 
-            // Dapatkan semua data dari borang
             const formData = new FormData(form);
             const data = new URLSearchParams(formData);
 
             try {
-                // Hantar data ke server secara senyap
-                const response = await fetch('http://localhost:3000/submit-mohon', {
+                const response = await fetch(SERVER_URL, {
                     method: 'POST',
                     body: data
                 });
@@ -139,25 +143,24 @@
                 const result = await response.json();
 
                 if (result.success) {
-                    // Jika berjaya, sembunyikan borang dan tunjukkan mesej kejayaan
                     borangUtama.style.display = 'none';
                     successMessage.style.display = 'block';
                 } else {
-                    // Jika server hantar ralat
                     alert('Gagal menghantar permohonan. Sila cuba lagi.');
                 }
             } catch (error) {
                 console.error('Ralat:', error);
                 alert('Tidak dapat berhubung dengan server. Pastikan server sedang berjalan.');
+            } finally {
+                submitButton.textContent = 'Hantar Permohonan';
+                submitButton.disabled = false;
             }
         });
 
-        // Apabila butang "Kembali" ditekan...
         kembaliButton.addEventListener('click', function() {
-            // Sembunyikan mesej dan tunjukkan semula borang
             successMessage.style.display = 'none';
             borangUtama.style.display = 'block';
-            form.reset(); // Kosongkan borang untuk permohonan baru
+            form.reset();
         });
     </script>
 </body>

@@ -5,241 +5,136 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard Rekod Pergerakan - SKM</title>
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #f4f4f9;
-            margin: 0;
-            padding: 20px;
-        }
-        .container {
-            max-width: 1200px;
-            margin: auto;
-            background-color: #fff;
-            padding: 25px;
-            border-radius: 8px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-        }
-        h2 {
-            text-align: center;
-            color: #333;
-            border-bottom: 2px solid #eee;
-            padding-bottom: 10px;
-        }
-        .controls-container {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-            flex-wrap: wrap;
-            gap: 15px;
-        }
-        .filter-container {
-            display: flex;
-            gap: 10px;
-            align-items: center;
-        }
-        input[type="date"], button {
-            padding: 10px;
-            border-radius: 5px;
-            border: 1px solid #ccc;
-            font-size: 14px;
-        }
-        button {
-            cursor: pointer;
-            background-color: #0056b3;
-            color: white;
-            border-color: #0056b3;
-        }
-        button:hover {
-            background-color: #004494;
-        }
-        #print-button {
-            background-color: #28a745;
-            border-color: #28a745;
-        }
-        #print-button:hover {
-            background-color: #218838;
-        }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 20px;
-        }
-        th, td {
-            padding: 12px;
-            border: 1px solid #ddd;
-            text-align: left;
-        }
-        th {
-            background-color: #f2f2f2;
-            font-weight: bold;
-        }
-        .nav-link {
-            display: block;
-            text-align: center;
-            margin-top: 20px;
-        }
-        #loading {
-            text-align: center;
-            padding: 50px;
-            font-size: 1.2em;
-            color: #888;
-        }
-
-        /* Gaya untuk cetakan */
+        body { font-family: Arial, sans-serif; background-color: #f4f4f9; margin: 0; padding: 20px; }
+        .container { max-width: 1200px; margin: auto; background-color: #fff; padding: 25px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1); }
+        h2 { text-align: center; color: #333; border-bottom: 2px solid #eee; padding-bottom: 10px; }
+        .controls-container { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 15px; }
+        .filter-container { display: flex; gap: 10px; align-items: center; }
+        input[type="date"], button { padding: 10px; border-radius: 5px; border: 1px solid #ccc; font-size: 14px; }
+        button { cursor: pointer; background-color: #0056b3; color: white; border-color: #0056b3; }
+        button:hover { background-color: #004494; }
+        #print-button { background-color: #28a745; border-color: #28a745; }
+        #print-button:hover { background-color: #218838; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { padding: 12px; border: 1px solid #ddd; text-align: left; }
+        th { background-color: #f2f2f2; font-weight: bold; }
+        .nav-link { display: block; text-align: center; margin-top: 20px; }
+        #loading { text-align: center; padding: 50px; font-size: 1.2em; color: #888; }
         @media print {
-            body {
-                background-color: #fff;
-                padding: 0;
-            }
-            .container {
-                box-shadow: none;
-                border: 1px solid #ccc;
-            }
-            .controls-container, .nav-link {
-                display: none; /* Sembunyikan butang dan pautan semasa mencetak */
-            }
-            h2 {
-                text-align: center;
-            }
+            body { background-color: #fff; padding: 0; }
+            .container { box-shadow: none; border: 1px solid #ccc; }
+            .controls-container, .nav-link { display: none; }
+            h2 { text-align: center; }
         }
     </style>
 </head>
 <body>
-
     <div class="container">
         <h2>Dashboard Rekod Pergerakan Staf</h2>
-
         <div class="controls-container">
             <div class="filter-container">
                 <label for="filter-tarikh">Pilih Tarikh:</label>
                 <input type="date" id="filter-tarikh">
-                <button id="filter-button">Saring</button>
                 <button id="reset-button">Papar Semua</button>
             </div>
             <button id="print-button">🖨️ Cetak Laporan Hari Ini</button>
         </div>
-
         <div id="rekod-container">
             <p id="loading">Memuat turun rekod...</p>
-            </div>
-
+        </div>
         <a href="borang.html" class="nav-link">Kembali ke Borang Permohonan</a>
     </div>
 
     <script>
-        // Gantikan dengan URL API SheetDB anda yang SAMA seperti sebelum ini
-const SHEETDB_API_URL = 'https://sheetdb.io/api/v1/hzist3f2phba7';
+        // GANTIKAN DENGAN URL SERVER RENDER ANDA
+        const API_SERVER_URL = 'https://projek-skm-server.onrender.com';
+        
+        const rekodContainer = document.getElementById('rekod-container');
+        const loadingElement = document.getElementById('loading');
+        const filterTarikhInput = document.getElementById('filter-tarikh');
+        const resetButton = document.getElementById('reset-button');
+        const printButton = document.getElementById('print-button');
+        let semuaRekod = []; // Simpan semua rekod di sini
 
-const rekodContainer = document.getElementById('rekod-container');
-const loadingElement = document.getElementById('loading');
-const filterTarikhInput = document.getElementById('filter-tarikh');
-const filterButton = document.getElementById('filter-button');
-const resetButton = document.getElementById('reset-button');
-const printButton = document.getElementById('print-button');
+        async function muatNaikRekod() {
+            loadingElement.style.display = 'block';
+            rekodContainer.innerHTML = '';
+            rekodContainer.appendChild(loadingElement);
+            
+            try {
+                const response = await fetch(`${API_SERVER_URL}/get-rekod`);
+                if (!response.ok) throw new Error('Gagal mendapat respons dari server');
+                semuaRekod = await response.json();
+                paparkanRekod(semuaRekod);
+            } catch (error) {
+                console.error('Ralat memuat turun rekod:', error);
+                rekodContainer.innerHTML = '<p style="color: red; text-align: center;">Gagal memuat turun rekod.</p>';
+            }
+        }
 
-// Fungsi utama untuk memuat turun rekod
-async function muatNaikRekod(tarikh = null) {
-    loadingElement.style.display = 'block';
-    rekodContainer.innerHTML = ''; // Kosongkan rekod lama
-    rekodContainer.appendChild(loadingElement);
-    
-    let url = SHEETDB_API_URL;
-    // Jika ada tarikh, guna fungsi carian SheetDB
-    if (tarikh) {
-        url += `/search?tarikh_mula=${tarikh}`;
-    }
+        function paparkanRekod(data) {
+            loadingElement.style.display = 'none';
+            if (!data || data.length === 0) {
+                rekodContainer.innerHTML = '<p style="text-align: center;">Tiada rekod ditemui.</p>';
+                return;
+            }
+            
+            data.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+            
+            const table = document.createElement('table');
+            table.innerHTML = `
+                <thead>
+                    <tr>
+                        <th>Timestamp</th> <th>Nama Staf</th> <th>Jenis Pergerakan</th> <th>Destinasi</th>
+                        <th>Tarikh</th> <th>Masa Pergi</th> <th>Tujuan</th> <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${data.map(rekod => `
+                        <tr>
+                            <td>${rekod.timestamp || ''}</td> <td>${rekod.nama_staf || ''}</td>
+                            <td>${rekod.jenis_pergerakan || ''}</td> <td>${rekod.destinasi || ''}</td>
+                            <td>${rekod.tarikh_mula || ''}</td> <td>${rekod.masa_pergi || ''}</td>
+                            <td>${rekod.tujuan || ''}</td> <td>${rekod.status || ''}</td>
+                        </tr>
+                    `).join('')}
+                </tbody>
+            `;
+            
+            rekodContainer.innerHTML = '';
+            rekodContainer.appendChild(table);
+        }
 
-    try {
-        const response = await fetch(url);
-        const data = await response.json();
-        paparkanRekod(data);
-    } catch (error) {
-        console.error('Ralat memuat turun rekod:', error);
-        rekodContainer.innerHTML = '<p style="color: red; text-align: center;">Gagal memuat turun rekod. Sila pastikan URL API betul.</p>';
-    }
-}
+        function saringRekod() {
+            const tarikhDipilih = filterTarikhInput.value;
+            if (!tarikhDipilih) {
+                paparkanRekod(semuaRekod);
+                return;
+            }
+            const rekodDisaring = semuaRekod.filter(rekod => rekod.tarikh_mula === tarikhDipilih);
+            paparkanRekod(rekodDisaring);
+        }
 
-// Fungsi untuk memaparkan rekod dalam bentuk jadual
-function paparkanRekod(data) {
-    loadingElement.style.display = 'none';
+        function dapatkanTarikhHariIni() {
+            const today = new Date();
+            const year = today.getFullYear();
+            const month = String(today.getMonth() + 1).padStart(2, '0');
+            const day = String(today.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`;
+        }
 
-    if (data.length === 0) {
-        rekodContainer.innerHTML = '<p style="text-align: center;">Tiada rekod ditemui.</p>';
-        return;
-    }
-    
-    // Sort data mengikut timestamp, yang terbaru di atas
-    data.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
-
-    const table = document.createElement('table');
-    table.innerHTML = `
-        <thead>
-            <tr>
-                <th>Timestamp</th>
-                <th>Nama Staf</th>
-                <th>Jenis Pergerakan</th>
-                <th>Destinasi</th>
-                <th>Tarikh</th>
-                <th>Masa Pergi</th>
-                <th>Tujuan</th>
-                <th>Status</th>
-            </tr>
-        </thead>
-        <tbody>
-            ${data.map(rekod => `
-                <tr>
-                    <td>${rekod.timestamp || ''}</td>
-                    <td>${rekod.nama_staf || ''}</td>
-                    <td>${rekod.jenis_pergerakan || ''}</td>
-                    <td>${rekod.destinasi || ''}</td>
-                    <td>${rekod.tarikh_mula || ''}</td>
-                    <td>${rekod.masa_pergi || ''}</td>
-                    <td>${rekod.tujuan || ''}</td>
-                    <td>${rekod.status || ''}</td>
-                </tr>
-            `).join('')}
-        </tbody>
-    `;
-    
-    rekodContainer.innerHTML = ''; // Kosongkan container
-    rekodContainer.appendChild(table); // Masukkan jadual baru
-}
-
-// Fungsi untuk mendapatkan tarikh hari ini dalam format YYYY-MM-DD
-function dapatkanTarikhHariIni() {
-    const today = new Date();
-    const year = today.getFullYear();
-    const month = String(today.getMonth() + 1).padStart(2, '0');
-    const day = String(today.getDate()).padStart(2, '0');
-    return `${year}-${month}-${day}`;
-}
-
-// Event Listeners
-document.addEventListener('DOMContentLoaded', () => {
-    muatNaikRekod(); // Muat naik semua rekod semasa halaman dibuka
-});
-
-filterButton.addEventListener('click', () => {
-    const tarikhDipilih = filterTarikhInput.value;
-    if (tarikhDipilih) {
-        muatNaikRekod(tarikhDipilih);
-    }
-});
-
-resetButton.addEventListener('click', () => {
-    filterTarikhInput.value = ''; // Kosongkan input tarikh
-    muatNaikRekod(); // Muat naik semula semua rekod
-});
-
-printButton.addEventListener('click', () => {
-    // Saring data untuk hari ini sahaja sebelum mencetak
-    const tarikhHariIni = dapatkanTarikhHariIni();
-    muatNaikRekod(tarikhHariIni).then(() => {
-        // Tunggu data dimuat naik, kemudian cetak
-        setTimeout(window.print, 500);
-    });
-});
+        document.addEventListener('DOMContentLoaded', muatNaikRekod);
+        filterTarikhInput.addEventListener('change', saringRekod);
+        resetButton.addEventListener('click', () => {
+            filterTarikhInput.value = '';
+            paparkanRekod(semuaRekod);
+        });
+        printButton.addEventListener('click', () => {
+            const tarikhHariIni = dapatkanTarikhHariIni();
+            const rekodHariIni = semuaRekod.filter(rekod => rekod.tarikh_mula === tarikhHariIni);
+            paparkanRekod(rekodHariIni);
+            setTimeout(window.print, 500);
+        });
     </script>
 </body>
 </html>
