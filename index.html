@@ -81,10 +81,15 @@
                     <label for="jenis_pergerakan">Jenis Pergerakan:</label>
                     <select id="jenis_pergerakan" name="jenis_pergerakan" required>
                         <option value="">-- Sila Pilih --</option>
-                        <option value="Urusan Rasmi">Urusan Rasmi</option>
+                        <option value="CR - Cuti Rehat">CR - Cuti Rehat</option>
+                        <option value="MC - Cuti Sakit">MC - Cuti Sakit</option>
+                        <option value="CG - Cuti Gantian">CG - Cuti Gantian</option>
+                        <option value="UR - Urusan Rasmi/Koperasi">UR - Urusan Rasmi/Koperasi</option>
+                        <option value="CK - Cuti Kuarantin">CK - Cuti Kuarantin</option>
+                        <option value="CB - Cuti Bersalin">CB - Cuti Bersalin</option>
+                        <option value="Kebenaran 4 Jam / HRMIS">Kebenaran 4 Jam / HRMIS</option>
                         <option value="Kursus/Latihan">Kursus/Latihan</option>
                         <option value="Bekerja Dari Rumah">Bekerja Dari Rumah</option>
-                        <option value="Urusan Peribadi">Urusan Peribadi</option>
                     </select>
                 </div>
                 <div class="form-group">
@@ -122,7 +127,7 @@
         const successMessage = document.getElementById('success-message');
         const kembaliButton = document.getElementById('kembali-button');
         
-        // GANTIKAN DENGAN URL SERVER RENDER ANDA
+        // PASTIKAN URL SERVER RENDER ANDA BETUL
         const SERVER_URL = 'https://projek-skm-server.onrender.com/submit-mohon';
 
         form.addEventListener('submit', async function(event) {
@@ -152,7 +157,7 @@
                 console.error('Ralat:', error);
                 alert('Tidak dapat berhubung dengan server. Pastikan server sedang berjalan.');
             } finally {
-                submitButton.textContent = 'Hantar Permohonan';
+                submitButton.textContent = 'Hantar Rekod Pergerakan';
                 submitButton.disabled = false;
             }
         });
