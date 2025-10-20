@@ -67,8 +67,9 @@
     </div>
 
     <script>
-        // ## PENTING: GANTIKAN DENGAN URL BACKEND ANDA YANG BETUL ##
-        const API_SERVER_URL = 'https://projek-skm-server.onrender.com'; 
+        // ## PENTING: PASTIKAN INI ADALAH URL SERVER "BACKEND" ANDA DARI RENDER ##
+        // Ia sepatutnya berakhir dengan "-server"
+        const API_SERVER_URL = 'https://projek-skm-server.onrender.com';
         
         const rekodContainer = document.getElementById('rekod-container');
         const loadingElement = document.getElementById('loading');
@@ -85,12 +86,14 @@
             rekodContainer.appendChild(loadingElement);
             try {
                 const response = await fetch(`${API_SERVER_URL}/get-rekod`); 
-                if (!response.ok) throw new Error('Gagal mendapat respons dari server');
+                if (!response.ok) {
+                    throw new Error(`Server Error: ${response.statusText}`);
+                }
                 semuaRekod = await response.json();
                 paparkanRekod(semuaRekod);
             } catch (error) {
                 console.error('Ralat memuat turun rekod:', error);
-                rekodContainer.innerHTML = '<p style="color: red; text-align: center;">Gagal memuat turun rekod.</p>';
+                rekodContainer.innerHTML = '<p style="color: red; text-align: center;">Gagal memuat turun rekod. Sila pastikan server backend berjalan dan URL adalah betul.</p>';
             }
         }
 
@@ -152,12 +155,14 @@
         filterTarikhInput.addEventListener('change', saringRekod);
         filterNamaInput.addEventListener('input', saringRekod);
         filterWilayahInput.addEventListener('change', saringRekod);
+
         resetButton.addEventListener('click', () => {
             filterTarikhInput.value = '';
             filterNamaInput.value = '';
             filterWilayahInput.value = '';
             paparkanRekod(semuaRekod);
         });
+        
         printButton.addEventListener('click', () => {
             window.print();
         });
