@@ -4,24 +4,17 @@ const axios = require('axios');
 const cors = require('cors');
 
 const app = express();
-// Render will set the PORT automatically
 const port = process.env.PORT || 3000;
 
-// Use CORS to allow access from any domain
 app.use(cors());
-
-// Middleware to read data from the form
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 
-// Main route to confirm the server is running
 app.get('/', (req, res) => {
     res.send('Server Pergerakan Staf SKM sedang berjalan.');
 });
 
-// Route to receive application data from index.html
 app.post('/submit-mohon', async (req, res) => {
-    // Get the SheetDB API URL from Environment Variables on Render
     const SHEETDB_API_URL = process.env.SHEETDB_API_URL;
     
     if (!SHEETDB_API_URL) {
@@ -35,9 +28,9 @@ app.post('/submit-mohon', async (req, res) => {
             jenis_pergerakan: req.body.jenis_pergerakan,
             destinasi: req.body.destinasi,
             tarikh_mula: req.body.tarikh_mula,
-            // ## PERUBAHAN DI SINI: TAMBAH TARIKH AKHIR ##
             tarikh_akhir: req.body.tarikh_akhir,
-            masa_pergi: req.body.masa_pergi,
+            // ## PERUBAHAN: GANTI MASA PERGI DENGAN TEMPAT BERTUGAS ##
+            tempat_bertugas: req.body.tempat_bertugas,
             tujuan: req.body.tujuan,
             status: 'BARU'
         }
@@ -53,14 +46,11 @@ app.post('/submit-mohon', async (req, res) => {
     }
 });
 
-// Route for dashboard.html to fetch all records
 app.get('/get-rekod', async (req, res) => {
     const SHEETDB_API_URL = process.env.SHEETDB_API_URL;
-
     if (!SHEETDB_API_URL) {
         return res.status(500).json({ message: 'URL API tidak ditetapkan di server.' });
     }
-
     try {
         const response = await axios.get(SHEETDB_API_URL);
         res.status(200).json(response.data);
