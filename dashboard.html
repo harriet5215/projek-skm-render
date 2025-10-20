@@ -67,7 +67,8 @@
     </div>
 
     <script>
-        const API_SERVER_URL = 'https://sistem-pergerakan-kakitangan.onrender.com';
+        // ## PENTING: GANTIKAN DENGAN URL BACKEND ANDA YANG BETUL ##
+        const API_SERVER_URL = 'https://projek-skm-server.onrender.com'; 
         
         const rekodContainer = document.getElementById('rekod-container');
         const loadingElement = document.getElementById('loading');
@@ -83,7 +84,6 @@
             rekodContainer.innerHTML = '';
             rekodContainer.appendChild(loadingElement);
             try {
-                // ## PERUBAHAN DI SINI: GUNA URL SERVER YANG BETUL ##
                 const response = await fetch(`${API_SERVER_URL}/get-rekod`); 
                 if (!response.ok) throw new Error('Gagal mendapat respons dari server');
                 semuaRekod = await response.json();
@@ -127,8 +127,7 @@
         }
 
         function saringRekod() {
-            // ## KOD INI MEMASTIKAN FORMAT TARIKH SENTIASA BETUL ##
-            const tarikhDipilih = filterTarikhInput.value; // Secara lalai, ini akan dalam format YYYY-MM-DD
+            const tarikhDipilih = filterTarikhInput.value;
             const namaDimasukkan = filterNamaInput.value.toLowerCase();
             const wilayahDipilih = filterWilayahInput.value;
             
