@@ -67,14 +67,12 @@
     </div>
 
     <script>
-        // Gantikan dengan URL server Render anda yang sebenar
-        const API_SERVER_URL = 'https://projek-skm-server.onrender.com';
+        const API_SERVER_URL = 'https://sistem-pergerakan-kakitangan.onrender.com';
         
         const rekodContainer = document.getElementById('rekod-container');
         const loadingElement = document.getElementById('loading');
         const filterTarikhInput = document.getElementById('filter-tarikh');
         const filterNamaInput = document.getElementById('filter-nama');
-        // ## BAHAGIAN BARU: DAPATKAN ELEMEN DROPDOWN WILAYAH ##
         const filterWilayahInput = document.getElementById('filter-wilayah');
         const resetButton = document.getElementById('reset-button');
         const printButton = document.getElementById('print-button');
@@ -85,7 +83,8 @@
             rekodContainer.innerHTML = '';
             rekodContainer.appendChild(loadingElement);
             try {
-                const response = await fetch(`${API_SERVER_URL}/get-rekod`);
+                // ## PERUBAHAN DI SINI: GUNA URL SERVER YANG BETUL ##
+                const response = await fetch(`${API_SERVER_URL}/get-rekod`); 
                 if (!response.ok) throw new Error('Gagal mendapat respons dari server');
                 semuaRekod = await response.json();
                 paparkanRekod(semuaRekod);
@@ -127,9 +126,9 @@
             rekodContainer.appendChild(table);
         }
 
-        // ## FUNGSI SARINGAN DIKEMAS KINI ##
         function saringRekod() {
-            const tarikhDipilih = filterTarikhInput.value;
+            // ## KOD INI MEMASTIKAN FORMAT TARIKH SENTIASA BETUL ##
+            const tarikhDipilih = filterTarikhInput.value; // Secara lalai, ini akan dalam format YYYY-MM-DD
             const namaDimasukkan = filterNamaInput.value.toLowerCase();
             const wilayahDipilih = filterWilayahInput.value;
             
@@ -143,7 +142,6 @@
                     rekod.nama_staf && rekod.nama_staf.toLowerCase().includes(namaDimasukkan)
                 );
             }
-            // ## BAHAGIAN BARU: LOGIK SARINGAN WILAYAH ##
             if (wilayahDipilih) {
                 rekodDisaring = rekodDisaring.filter(rekod => rekod.tempat_bertugas === wilayahDipilih);
             }
@@ -151,21 +149,16 @@
             paparkanRekod(rekodDisaring);
         }
 
-        // Event Listeners
         document.addEventListener('DOMContentLoaded', muatNaikRekod);
         filterTarikhInput.addEventListener('change', saringRekod);
         filterNamaInput.addEventListener('input', saringRekod);
-        // ## BAHAGIAN BARU: TAMBAH EVENT LISTENER UNTUK DROPDOWN WILAYAH ##
         filterWilayahInput.addEventListener('change', saringRekod);
-
         resetButton.addEventListener('click', () => {
             filterTarikhInput.value = '';
             filterNamaInput.value = '';
-            // ## BAHAGIAN BARU: RESET DROPDOWN WILAYAH ##
             filterWilayahInput.value = '';
             paparkanRekod(semuaRekod);
         });
-        
         printButton.addEventListener('click', () => {
             window.print();
         });
