@@ -10,7 +10,7 @@
         h2 { text-align: center; color: #333; border-bottom: 2px solid #eee; padding-bottom: 10px; }
         .controls-container { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 20px; }
         .filter-group { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
-        input[type="date"], input[type="text"], button { padding: 10px; border-radius: 5px; border: 1px solid #ccc; font-size: 14px; }
+        input[type="date"], input[type="text"], select, button { padding: 10px; border-radius: 5px; border: 1px solid #ccc; font-size: 14px; }
         button { cursor: pointer; background-color: #0056b3; color: white; border-color: #0056b3; }
         button:hover { background-color: #004494; }
         #print-button { background-color: #28a745; border-color: #28a745; }
@@ -20,6 +20,7 @@
         th { background-color: #f2f2f2; font-weight: bold; }
         .nav-link { display: block; text-align: center; margin-top: 20px; }
         #loading { text-align: center; padding: 50px; font-size: 1.2em; color: #888; }
+        
         @media print {
             body { background-color: #fff; padding: 0; }
             .container { box-shadow: none; border: 1px solid #ccc; }
@@ -35,8 +36,26 @@
             <div class="filter-group">
                 <label for="filter-tarikh">Saring Tarikh Mula:</label>
                 <input type="date" id="filter-tarikh">
+                
                 <label for="filter-nama">Saring Nama:</label>
                 <input type="text" id="filter-nama" placeholder="Taip nama staf...">
+
+                <label for="filter-wilayah">Saring Wilayah:</label>
+                <select id="filter-wilayah">
+                    <option value="">Semua Wilayah</option>
+                    <option value="SKM Negeri Sabah">SKM Negeri Sabah</option>
+                    <option value="SKM Wilayah PBS">SKM Wilayah PBS</option>
+                    <option value="SKM Wilayah PBU">SKM Wilayah PBU</option>
+                    <option value="SKM W.P Labuan">SKM W.P Labuan</option>
+                    <option value="SKM Wilayah Beaufort">SKM Wilayah Beaufort</option>
+                    <option value="SKM Wilayah Keningau">SKM Wilayah Keningau</option>
+                    <option value="SKM Wilayah Ranau">SKM Wilayah Ranau</option>
+                    <option value="SKM Wilayah Kota Marudu">SKM Wilayah Kota Marudu</option>
+                    <option value="SKM Wilayah Sandakan">SKM Wilayah Sandakan</option>
+                    <option value="SKM Wilayah Lahad Datu">SKM Wilayah Lahad Datu</option>
+                    <option value="SKM Wilayah Tawau">SKM Wilayah Tawau</option>
+                </select>
+                
                 <button id="reset-button">Papar Semua</button>
             </div>
             <button id="print-button">🖨️ Cetak Laporan</button>
@@ -46,12 +65,17 @@
         </div>
         <a href="index.html" class="nav-link">Kembali ke Borang Permohonan</a>
     </div>
+
     <script>
+        // Gantikan dengan URL server Render anda yang sebenar
         const API_SERVER_URL = 'https://projek-skm-server.onrender.com';
+        
         const rekodContainer = document.getElementById('rekod-container');
         const loadingElement = document.getElementById('loading');
         const filterTarikhInput = document.getElementById('filter-tarikh');
         const filterNamaInput = document.getElementById('filter-nama');
+        // ## BAHAGIAN BARU: DAPATKAN ELEMEN DROPDOWN WILAYAH ##
+        const filterWilayahInput = document.getElementById('filter-wilayah');
         const resetButton = document.getElementById('reset-button');
         const printButton = document.getElementById('print-button');
         let semuaRekod = [];
@@ -70,6 +94,7 @@
                 rekodContainer.innerHTML = '<p style="color: red; text-align: center;">Gagal memuat turun rekod.</p>';
             }
         }
+
         function paparkanRekod(data) {
             loadingElement.style.display = 'none';
             if (!data || data.length === 0) {
@@ -81,28 +106,18 @@
             table.innerHTML = `
                 <thead>
                     <tr>
-                        <th>Timestamp</th>
-                        <th>Nama Staf</th>
-                        <th>Jenis Pergerakan</th>
-                        <th>Destinasi</th>
-                        <th>Tarikh Mula</th>
-                        <th>Tarikh Akhir</th>
-                        <th>Tempat Bertugas</th>
-                        <th>Tujuan</th>
-                        <th>Status</th>
+                        <th>Timestamp</th> <th>Nama Staf</th> <th>Jenis Pergerakan</th> <th>Destinasi</th>
+                        <th>Tarikh Mula</th> <th>Tarikh Akhir</th> <th>Tempat Bertugas</th>
+                        <th>Tujuan</th> <th>Status</th>
                     </tr>
                 </thead>
                 <tbody>
                     ${data.map(rekod => `
                         <tr>
-                            <td>${rekod.timestamp || ''}</td>
-                            <td>${rekod.nama_staf || ''}</td>
-                            <td>${rekod.jenis_pergerakan || ''}</td>
-                            <td>${rekod.destinasi || ''}</td>
-                            <td>${rekod.tarikh_mula || ''}</td>
-                            <td>${rekod.tarikh_akhir || ''}</td>
-                            <td>${rekod.tempat_bertugas || ''}</td>
-                            <td>${rekod.tujuan || ''}</td>
+                            <td>${rekod.timestamp || ''}</td> <td>${rekod.nama_staf || ''}</td>
+                            <td>${rekod.jenis_pergerakan || ''}</td> <td>${rekod.destinasi || ''}</td>
+                            <td>${rekod.tarikh_mula || ''}</td> <td>${rekod.tarikh_akhir || ''}</td>
+                            <td>${rekod.tempat_bertugas || ''}</td> <td>${rekod.tujuan || ''}</td>
                             <td>${rekod.status || ''}</td>
                         </tr>
                     `).join('')}
@@ -111,10 +126,15 @@
             rekodContainer.innerHTML = '';
             rekodContainer.appendChild(table);
         }
+
+        // ## FUNGSI SARINGAN DIKEMAS KINI ##
         function saringRekod() {
             const tarikhDipilih = filterTarikhInput.value;
             const namaDimasukkan = filterNamaInput.value.toLowerCase();
+            const wilayahDipilih = filterWilayahInput.value;
+            
             let rekodDisaring = semuaRekod;
+
             if (tarikhDipilih) {
                 rekodDisaring = rekodDisaring.filter(rekod => rekod.tarikh_mula === tarikhDipilih);
             }
@@ -123,16 +143,29 @@
                     rekod.nama_staf && rekod.nama_staf.toLowerCase().includes(namaDimasukkan)
                 );
             }
+            // ## BAHAGIAN BARU: LOGIK SARINGAN WILAYAH ##
+            if (wilayahDipilih) {
+                rekodDisaring = rekodDisaring.filter(rekod => rekod.tempat_bertugas === wilayahDipilih);
+            }
+            
             paparkanRekod(rekodDisaring);
         }
+
+        // Event Listeners
         document.addEventListener('DOMContentLoaded', muatNaikRekod);
         filterTarikhInput.addEventListener('change', saringRekod);
         filterNamaInput.addEventListener('input', saringRekod);
+        // ## BAHAGIAN BARU: TAMBAH EVENT LISTENER UNTUK DROPDOWN WILAYAH ##
+        filterWilayahInput.addEventListener('change', saringRekod);
+
         resetButton.addEventListener('click', () => {
             filterTarikhInput.value = '';
             filterNamaInput.value = '';
+            // ## BAHAGIAN BARU: RESET DROPDOWN WILAYAH ##
+            filterWilayahInput.value = '';
             paparkanRekod(semuaRekod);
         });
+        
         printButton.addEventListener('click', () => {
             window.print();
         });
