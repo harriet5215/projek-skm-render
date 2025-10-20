@@ -34,7 +34,7 @@
         <h2>Dashboard Rekod Pergerakan Staf</h2>
         <div class="controls-container">
             <div class="filter-group">
-                <label for="filter-tarikh">Saring Tarikh Mula:</label>
+                <label for="filter-tarikh">Tarikh Hantar Rekod:</label>
                 <input type="date" id="filter-tarikh">
                 
                 <label for="filter-nama">Saring Nama:</label>
@@ -67,8 +67,7 @@
     </div>
 
     <script>
-        // ## PENTING: PASTIKAN INI ADALAH URL SERVER "BACKEND" ANDA DARI RENDER ##
-        // Ia sepatutnya berakhir dengan "-server"
+        // Gantikan dengan URL server backend anda yang betul
         const API_SERVER_URL = 'https://projek-skm-server.onrender.com';
         
         const rekodContainer = document.getElementById('rekod-container');
@@ -80,15 +79,30 @@
         const printButton = document.getElementById('print-button');
         let semuaRekod = [];
 
+        function normalizeDateFromTimestamp(timestampStr) {
+            if (!timestampStr) return '';
+            // Ambil bahagian sebelum koma (iaitu tarikh sahaja)
+            const datePart = timestampStr.split(',')[0];
+            // Tukar format DD/MM/YYYY kepada YYYY-MM-DD
+            if (datePart.includes('/')) {
+                const parts = datePart.split('/');
+                if (parts.length === 3) {
+                    const day = parts[0].padStart(2, '0');
+                    const month = parts[1].padStart(2, '0');
+                    const year = parts[2];
+                    return `${year}-${month}-${day}`;
+                }
+            }
+            return datePart; // Pulangkan asal jika format tidak dijangka
+        }
+
         async function muatNaikRekod() {
             loadingElement.style.display = 'block';
             rekodContainer.innerHTML = '';
             rekodContainer.appendChild(loadingElement);
             try {
                 const response = await fetch(`${API_SERVER_URL}/get-rekod`); 
-                if (!response.ok) {
-                    throw new Error(`Server Error: ${response.statusText}`);
-                }
+                if (!response.ok) throw new Error(`Server Error: ${response.statusText}`);
                 semuaRekod = await response.json();
                 paparkanRekod(semuaRekod);
             } catch (error) {
@@ -129,6 +143,7 @@
             rekodContainer.appendChild(table);
         }
 
+        // ## PERUBAHAN LOGIK SARINGAN DI SINI ##
         function saringRekod() {
             const tarikhDipilih = filterTarikhInput.value;
             const namaDimasukkan = filterNamaInput.value.toLowerCase();
@@ -137,7 +152,11 @@
             let rekodDisaring = semuaRekod;
 
             if (tarikhDipilih) {
-                rekodDisaring = rekodDisaring.filter(rekod => rekod.tarikh_mula === tarikhDipilih);
+                // Bandingkan dengan tarikh dari timestamp yang telah dinormalisasikan
+                rekodDisaring = rekodDisaring.filter(rekod => {
+                    const tarikhHantar = normalizeDateFromTimestamp(rekod.timestamp);
+                    return tarikhHantar === tarikhDipilih;
+                });
             }
             if (namaDimasukkan) {
                 rekodDisaring = rekodDisaring.filter(rekod => 
