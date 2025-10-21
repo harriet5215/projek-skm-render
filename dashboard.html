@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard Rekod Pergerakan - SKM</title>
+    
     <style>
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
@@ -11,7 +12,7 @@
             margin: 0;
             padding: 20px;
             display: flex;
-            flex-direction: column; /* Susun container dan footer secara menegak */
+            flex-direction: column;
             min-height: 100vh;
         }
         .container {
@@ -21,9 +22,9 @@
             padding: 30px;
             border-radius: 12px;
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-            width: 100%; /* Pastikan container mengambil lebar penuh */
-            flex-grow: 1; /* Benarkan container membesar */
-            box-sizing: border-box; /* Kiraan saiz yang betul */
+            width: 100%;
+            flex-grow: 1;
+            box-sizing: border-box;
         }
         h2 {
             text-align: center;
@@ -101,9 +102,8 @@
             text-align: left;
             border-bottom: 1px solid #dee2e6;
             vertical-align: middle;
-            white-space: nowrap; /* Elak teks terpotong */
+            white-space: nowrap; /* Elak teks terpotong di paparan web */
         }
-        /* Tetapkan lebar lajur 'No.' */
         th:first-child, td:first-child {
             width: 1%;
             text-align: right;
@@ -139,7 +139,6 @@
         .nav-link { display: block; text-align: center; margin-top: 25px; color: #0056b3; font-weight: 600; }
         #loading { text-align: center; padding: 50px; font-size: 1.2em; color: #888; }
         
-        /* ## GAYA BARU: KAWALAN PAGINATION ## */
         #pagination-controls {
             display: flex;
             justify-content: center;
@@ -160,7 +159,6 @@
             color: #333;
         }
 
-        /* ## GAYA BARU: FOOTER HAK CIPTA ## */
         footer {
             text-align: center;
             padding: 20px;
@@ -169,14 +167,54 @@
             font-size: 12px;
         }
         
+        /* ## GAYA CETAK BARU YANG DIPERBAIKI ## */
         @media print {
-            body { background-color: #fff; padding: 0; }
-            .container { box-shadow: none; border: 0; }
-            .controls-container, .nav-link, #pagination-controls, footer { display: none; }
-            h2 { text-align: center; }
-            table { border: 1px solid #999; }
-            th { background-color: #eee; }
-            .status-badge { background-color: #fff !important; color: #000 !important; border: 1px solid #ccc; }
+            body {
+                background-color: #fff;
+                padding: 0;
+                font-size: 10pt; /* Kurangkan saiz fon keseluruhan */
+                width: 100%;
+            }
+            .container {
+                box-shadow: none;
+                border: 0;
+                width: 100% !important;
+                padding: 0;
+            }
+            .controls-container, .nav-link, #pagination-controls, footer {
+                display: none; /* Sembunyikan semua elemen tidak penting */
+            }
+            h2 {
+                text-align: center;
+                font-size: 14pt;
+                margin-bottom: 15px;
+            }
+            table {
+                width: 100%;
+                border: 1px solid #999;
+                table-layout: auto; /* Biar pelayar tentukan saiz */
+            }
+            th, td {
+                padding: 6px 8px; /* Kurangkan padding sel */
+                font-size: 9pt; /* Kurangkan saiz fon dalam jadual */
+                white-space: normal; /* Benarkan teks "wrap" ke baris bawah */
+                word-wrap: break-word; /* Benarkan perkataan panjang dipotong */
+                border-bottom: 1px solid #ccc;
+            }
+            th {
+                background-color: #eee;
+                font-weight: 600;
+            }
+            .status-badge {
+                background-color: #fff !important;
+                color: #000 !important;
+                border: 1px solid #ccc;
+                padding: 2px 5px;
+                font-size: 8pt;
+            }
+            tr {
+                page-break-inside: avoid; /* Elak baris terpotong antara halaman */
+            }
         }
     </style>
 </head>
@@ -188,10 +226,8 @@
             <div class="filter-group">
                 <label for="filter-tarikh">Tarikh Hantar Rekod:</label>
                 <input type="date" id="filter-tarikh">
-                
                 <label for="filter-nama">Saring Nama:</label>
                 <input type="text" id="filter-nama" placeholder="Taip nama staf...">
-
                 <label for="filter-wilayah">Saring Wilayah:</label>
                 <select id="filter-wilayah">
                     <option value="">Semua Wilayah</option>
@@ -207,7 +243,6 @@
                     <option value="SKM Wilayah Lahad Datu">SKM Wilayah Lahad Datu</option>
                     <option value="SKM Wilayah Tawau">SKM Wilayah Tawau</option>
                 </select>
-                
                 <button id="reset-button">Papar Semua</button>
             </div>
             <button id="print-button">🖨️ Cetak Laporan</button>
@@ -215,13 +250,11 @@
         <div id="rekod-container">
             <p id="loading">Memuat turun rekod...</p>
         </div>
-        
         <div id="pagination-controls">
             <button id="prev-button" disabled>Sebelum</button>
             <span id="page-info">Halaman 1</span>
             <button id="next-button" disabled>Seterusnya</button>
         </div>
-
         <a href="index.html" class="nav-link">Kembali ke Borang Permohonan</a>
     </div>
     
@@ -231,7 +264,6 @@
 
     <script>
         const API_SERVER_URL = 'https://projek-skm-server.onrender.com';
-        
         const rekodContainer = document.getElementById('rekod-container');
         const loadingElement = document.getElementById('loading');
         const filterTarikhInput = document.getElementById('filter-tarikh');
@@ -239,16 +271,14 @@
         const filterWilayahInput = document.getElementById('filter-wilayah');
         const resetButton = document.getElementById('reset-button');
         const printButton = document.getElementById('print-button');
-        
-        // ## VARIABEL BARU UNTUK PAGINATION ##
         const prevButton = document.getElementById('prev-button');
         const nextButton = document.getElementById('next-button');
         const pageInfo = document.getElementById('page-info');
         
-        let semuaRekod = []; // Simpan semua rekod asal
-        let rekodYangDitapis = []; // Simpan rekod selepas ditapis
+        let semuaRekod = [];
+        let rekodYangDitapis = [];
         let currentPage = 1;
-        const recordsPerPage = 50; // Papar 50 rekod setiap halaman
+        const recordsPerPage = 50;
 
         function parseCustomDate(timestampStr) {
             if (!timestampStr) return null;
@@ -280,50 +310,40 @@
             try {
                 const response = await fetch(`${API_SERVER_URL}/get-rekod`); 
                 if (!response.ok) throw new Error(`Server Error: ${response.statusText}`);
-                
                 let data = await response.json();
-                
-                // Susun data (terkini di atas) sebaik sahaja ia diterima
                 data.sort((a, b) => parseCustomDate(b.timestamp) - parseCustomDate(a.timestamp));
-                
                 semuaRekod = data;
-                rekodYangDitapis = semuaRekod; // Pada mulanya, rekod yang ditapis = semua rekod
-                
-                currentPage = 1; // Tetapkan semula ke halaman 1
-                paparkanRekod(); // Panggil tanpa argumen
+                rekodYangDitapis = semuaRekod;
+                currentPage = 1;
+                paparkanRekod();
             } catch (error) {
                 console.error('Ralat memuat turun rekod:', error);
                 rekodContainer.innerHTML = '<p style="color: red; text-align: center;">Gagal memuat turun rekod. Sila pastikan server backend berjalan dan URL adalah betul.</p>';
             }
         }
 
-        // ## FUNGSI paparkanRekod DIUBAH SUAI ##
         function paparkanRekod() {
             loadingElement.style.display = 'none';
-            rekodContainer.innerHTML = ''; // Kosongkan paparan sedia ada
+            rekodContainer.innerHTML = '';
 
             if (!rekodYangDitapis || rekodYangDitapis.length === 0) {
                 rekodContainer.innerHTML = '<p style="text-align: center;">Tiada rekod ditemui.</p>';
-                // Sembunyikan kawalan pagination jika tiada rekod
                 document.getElementById('pagination-controls').style.display = 'none';
                 return;
             }
             
-            // Tunjukkan kawalan pagination
             document.getElementById('pagination-controls').style.display = 'flex';
-
-            // Kira rekod untuk halaman semasa
             const startIndex = (currentPage - 1) * recordsPerPage;
             const endIndex = startIndex + recordsPerPage;
             const dataUntukPaparan = rekodYangDitapis.slice(startIndex, endIndex);
-            
             const table = document.createElement('table');
             const now = new Date();
 
             table.innerHTML = `
                 <thead>
                     <tr>
-                        <th>No.</th> <th>Tarikh Hantar</th> <th>Nama Staf</th> <th>Jenis Pergerakan</th> <th>Destinasi</th>
+                        <th>No.</th>
+                        <th>Tarikh Hantar</th> <th>Nama Staf</th> <th>Jenis Pergerakan</th> <th>Destinasi</th>
                         <th>Tarikh Mula</th> <th>Tarikh Akhir</th> <th>Tempat Bertugas</th>
                         <th>Tujuan</th> <th>Status</th>
                     </tr>
@@ -342,7 +362,6 @@
                                 statusClass = 'status-baru';
                             }
                         }
-
                         return `
                             <tr>
                                 <td style="text-align: right;">${startIndex + index + 1}</td>
@@ -362,23 +381,17 @@
             `;
             
             rekodContainer.appendChild(table);
-            
-            // Kemas kini butang pagination
             const totalPages = Math.ceil(rekodYangDitapis.length / recordsPerPage);
             pageInfo.textContent = `Halaman ${currentPage} dari ${totalPages}`;
-            
             prevButton.disabled = (currentPage === 1);
             nextButton.disabled = (currentPage === totalPages || totalPages === 0);
         }
 
-        // ## FUNGSI saringRekod DIUBAH SUAI ##
         function saringRekod() {
             const tarikhDipilih = filterTarikhInput.value;
             const namaDimasukkan = filterNamaInput.value.toLowerCase();
             const wilayahDipilih = filterWilayahInput.value;
-            
             let rekodDisaring = semuaRekod;
-
             if (tarikhDipilih) {
                 rekodDisaring = rekodDisaring.filter(rekod => {
                     const tarikhHantar = normalizeDateFromTimestamp(rekod.timestamp);
@@ -393,23 +406,20 @@
             if (wilayahDipilih) {
                 rekodDisaring = rekodDisaring.filter(rekod => rekod.tempat_bertugas === wilayahDipilih);
             }
-            
-            rekodYangDitapis = rekodDisaring; // Simpan hasil tapisan
-            currentPage = 1; // Tetapkan semula ke halaman 1
-            paparkanRekod(); // Paparkan halaman pertama hasil tapisan
+            rekodYangDitapis = rekodDisaring;
+            currentPage = 1;
+            paparkanRekod();
         }
 
         document.addEventListener('DOMContentLoaded', muatNaikRekod);
         filterTarikhInput.addEventListener('change', saringRekod);
         filterNamaInput.addEventListener('input', saringRekod);
         filterWilayahInput.addEventListener('change', saringRekod);
-
         resetButton.addEventListener('click', () => {
             filterTarikhInput.value = '';
             filterNamaInput.value = '';
             filterWilayahInput.value = '';
-            
-            rekodYangDitapis = semuaRekod; // Reset tapisan
+            rekodYangDitapis = semuaRekod;
             currentPage = 1;
             paparkanRekod();
         });
@@ -418,7 +428,6 @@
             window.print();
         });
         
-        // ## EVENT LISTENER BARU UNTUK PAGINATION ##
         prevButton.addEventListener('click', () => {
             if (currentPage > 1) {
                 currentPage--;
