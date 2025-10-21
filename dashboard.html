@@ -85,8 +85,9 @@
         }
         #print-button:hover { background-color: #218838; }
         
+        /* ## PERUBAHAN DI SINI ## */
         #rekod-container {
-            overflow-x: auto;
+            /* Dibuang: overflow-x: auto; */
         }
         table {
             width: 100%;
@@ -96,18 +97,28 @@
             border: 1px solid #dee2e6;
             border-radius: 8px;
             overflow: hidden;
+            table-layout: fixed; /* Paksa jadual ikut lebar 100% */
         }
         th, td {
             padding: 14px 18px;
             text-align: left;
             border-bottom: 1px solid #dee2e6;
             vertical-align: middle;
-            white-space: nowrap; /* Elak teks terpotong di paparan web */
+            /* Dibuang: white-space: nowrap; */
+            word-wrap: break-word; /* Benarkan teks panjang turun baris */
         }
-        th:first-child, td:first-child {
-            width: 1%;
-            text-align: right;
-        }
+        
+        /* Tetapan lebar lajur untuk 'fit screen' */
+        .col-no { width: 4%; text-align: right; }
+        .col-timestamp { width: 10%; }
+        .col-nama { width: 12%; }
+        .col-jenis { width: 12%; }
+        .col-destinasi { width: 13%; }
+        .col-tarikh { width: 9%; }
+        .col-tempat { width: 12%; }
+        .col-tujuan { width: 14%; } /* Beri lebih ruang untuk tujuan */
+        .col-status { width: 7%; text-align: center; }
+        
         th {
             background-color: #f1f3f5;
             font-weight: 600;
@@ -122,99 +133,29 @@
         tbody tr:hover {
             background-color: #f8f9fa;
         }
-        
-        .status-badge {
-            padding: 5px 12px;
-            border-radius: 15px;
-            font-weight: 600;
-            font-size: 12px;
-            display: inline-block;
-            text-align: center;
-            min-width: 60px;
-        }
+        /* ... (Gaya lain dikekalkan) ... */
+        .status-badge { padding: 5px 12px; border-radius: 15px; font-weight: 600; font-size: 12px; display: inline-block; text-align: center; min-width: 60px; }
         .status-baru { background-color: #fff0c2; color: #7a5c00; }
         .status-dilihat { background-color: #e9ecef; color: #495057; }
         .status-default { background-color: #d1ecf1; color: #0c5460; }
-
         .nav-link { display: block; text-align: center; margin-top: 25px; color: #0056b3; font-weight: 600; }
         #loading { text-align: center; padding: 50px; font-size: 1.2em; color: #888; }
+        #pagination-controls { display: flex; justify-content: center; align-items: center; gap: 10px; margin-top: 25px; }
+        #pagination-controls button { width: 120px; }
+        #pagination-controls button:disabled { background-color: #ced4da; border-color: #ced4da; cursor: not-allowed; }
+        #page-info { font-weight: 600; color: #333; }
+        footer { text-align: center; padding: 20px; margin-top: 30px; color: #888; font-size: 12px; }
         
-        #pagination-controls {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            gap: 10px;
-            margin-top: 25px;
-        }
-        #pagination-controls button {
-            width: 120px;
-        }
-        #pagination-controls button:disabled {
-            background-color: #ced4da;
-            border-color: #ced4da;
-            cursor: not-allowed;
-        }
-        #page-info {
-            font-weight: 600;
-            color: #333;
-        }
-
-        footer {
-            text-align: center;
-            padding: 20px;
-            margin-top: 30px;
-            color: #888;
-            font-size: 12px;
-        }
-        
-        /* ## GAYA CETAK BARU YANG DIPERBAIKI ## */
         @media print {
-            body {
-                background-color: #fff;
-                padding: 0;
-                font-size: 10pt; /* Kurangkan saiz fon keseluruhan */
-                width: 100%;
-            }
-            .container {
-                box-shadow: none;
-                border: 0;
-                width: 100% !important;
-                padding: 0;
-            }
-            .controls-container, .nav-link, #pagination-controls, footer {
-                display: none; /* Sembunyikan semua elemen tidak penting */
-            }
-            h2 {
-                text-align: center;
-                font-size: 14pt;
-                margin-bottom: 15px;
-            }
-            table {
-                width: 100%;
-                border: 1px solid #999;
-                table-layout: auto; /* Biar pelayar tentukan saiz */
-            }
-            th, td {
-                padding: 6px 8px; /* Kurangkan padding sel */
-                font-size: 9pt; /* Kurangkan saiz fon dalam jadual */
-                white-space: normal; /* Benarkan teks "wrap" ke baris bawah */
-                word-wrap: break-word; /* Benarkan perkataan panjang dipotong */
-                border-bottom: 1px solid #ccc;
-            }
-            th {
-                background-color: #eee;
-                font-weight: 600;
-            }
-            .status-badge {
-                background-color: #fff !important;
-                color: #000 !important;
-                border: 1px solid #ccc;
-                padding: 2px 5px;
-                font-size: 8pt;
-            }
-            tr {
-                page-break-inside: avoid; /* Elak baris terpotong antara halaman */
-            }
+            body { background-color: #fff; padding: 0; font-size: 10pt; width: 100%; }
+            .container { box-shadow: none; border: 0; width: 100% !important; padding: 0; }
+            .controls-container, .nav-link, #pagination-controls, footer { display: none; }
+            h2 { text-align: center; font-size: 14pt; margin-bottom: 15px; }
+            table { width: 100%; border: 1px solid #999; table-layout: auto; }
+            th, td { padding: 6px 8px; font-size: 9pt; white-space: normal; word-wrap: break-word; border-bottom: 1px solid #ccc; }
+            th { background-color: #eee; font-weight: 600; }
+            .status-badge { background-color: #fff !important; color: #000 !important; border: 1px solid #ccc; padding: 2px 5px; font-size: 8pt; }
+            tr { page-break-inside: avoid; }
         }
     </style>
 </head>
@@ -322,6 +263,7 @@
             }
         }
 
+        // ## PERUBAHAN DI SINI: TAMBAH KELAS CSS PADA SEL JADUAL ##
         function paparkanRekod() {
             loadingElement.style.display = 'none';
             rekodContainer.innerHTML = '';
@@ -342,10 +284,16 @@
             table.innerHTML = `
                 <thead>
                     <tr>
-                        <th>No.</th>
-                        <th>Tarikh Hantar</th> <th>Nama Staf</th> <th>Jenis Pergerakan</th> <th>Destinasi</th>
-                        <th>Tarikh Mula</th> <th>Tarikh Akhir</th> <th>Tempat Bertugas</th>
-                        <th>Tujuan</th> <th>Status</th>
+                        <th class="col-no">No.</th>
+                        <th class="col-timestamp">Tarikh Hantar</th>
+                        <th class="col-nama">Nama Staf</th>
+                        <th class="col-jenis">Jenis Pergerakan</th>
+                        <th class="col-destinasi">Destinasi</th>
+                        <th class="col-tarikh">Tarikh Mula</th>
+                        <th class="col-tarikh">Tarikh Akhir</th>
+                        <th class="col-tempat">Tempat Bertugas</th>
+                        <th class="col-tujuan">Tujuan</th>
+                        <th class="col-status">Status</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -364,16 +312,16 @@
                         }
                         return `
                             <tr>
-                                <td style="text-align: right;">${startIndex + index + 1}</td>
-                                <td>${(rekod.timestamp || '').split(',')[0]}</td> 
-                                <td>${rekod.nama_staf || ''}</td>
-                                <td>${rekod.jenis_pergerakan || ''}</td>
-                                <td>${rekod.destinasi || ''}</td>
-                                <td>${rekod.tarikh_mula || ''}</td>
-                                <td>${rekod.tarikh_akhir || ''}</td>
-                                <td>${rekod.tempat_bertugas || ''}</td>
-                                <td>${rekod.tujuan || ''}</td>
-                                <td><span class="status-badge ${statusClass}">${statusPaparan}</span></td>
+                                <td class="col-no">${startIndex + index + 1}</td>
+                                <td class="col-timestamp">${(rekod.timestamp || '').split(',')[0]}</td> 
+                                <td class="col-nama">${rekod.nama_staf || ''}</td>
+                                <td class="col-jenis">${rekod.jenis_pergerakan || ''}</td>
+                                <td class="col-destinasi">${rekod.destinasi || ''}</td>
+                                <td class="col-tarikh">${rekod.tarikh_mula || ''}</td>
+                                <td class="col-tarikh">${rekod.tarikh_akhir || ''}</td>
+                                <td class="col-tempat">${rekod.tempat_bertugas || ''}</td>
+                                <td class="col-tujuan">${rekod.tujuan || ''}</td>
+                                <td class="col-status"><span class="status-badge ${statusClass}">${statusPaparan}</span></td>
                             </tr>
                         `;
                     }).join('')}
