@@ -5,31 +5,183 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard Rekod Pergerakan - SKM</title>
     <style>
-        body { font-family: Arial, sans-serif; background-color: #f4f4f9; margin: 0; padding: 20px; }
-        .container { max-width: 1200px; margin: auto; background-color: #fff; padding: 25px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1); }
-        h2 { text-align: center; color: #333; border-bottom: 2px solid #eee; padding-bottom: 10px; }
-        .controls-container { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 20px; }
-        .filter-group { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
-        input[type="date"], input[type="text"], select, button { padding: 10px; border-radius: 5px; border: 1px solid #ccc; font-size: 14px; }
-        button { cursor: pointer; background-color: #0056b3; color: white; border-color: #0056b3; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background-color: #f4f7f6;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column; /* Susun container dan footer secara menegak */
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 1400px;
+            margin: auto;
+            background-color: #ffffff;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+            width: 100%; /* Pastikan container mengambil lebar penuh */
+            flex-grow: 1; /* Benarkan container membesar */
+            box-sizing: border-box; /* Kiraan saiz yang betul */
+        }
+        h2 {
+            text-align: center;
+            color: #222;
+            border-bottom: 2px solid #e0e0e0;
+            padding-bottom: 15px;
+            margin-bottom: 25px;
+        }
+        .controls-container {
+            background-color: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 25px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+        .filter-group {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        .filter-group label {
+            font-weight: 600;
+            color: #333;
+        }
+        input[type="date"], input[type="text"], select, button {
+            padding: 10px 12px;
+            border-radius: 6px;
+            border: 1px solid #ced4da;
+            font-size: 14px;
+            transition: all 0.2s ease-in-out;
+        }
+        input:focus, select:focus {
+            border-color: #0056b3;
+            box-shadow: 0 0 0 3px rgba(0, 86, 179, 0.1);
+            outline: none;
+        }
+        button {
+            cursor: pointer;
+            background-color: #0056b3;
+            color: white;
+            border-color: #0056b3;
+            font-weight: 600;
+        }
         button:hover { background-color: #004494; }
-        #print-button { background-color: #28a745; border-color: #28a745; }
+        #reset-button {
+            background-color: #6c757d;
+            border-color: #6c757d;
+        }
+        #reset-button:hover { background-color: #5a6268; }
+        #print-button {
+            background-color: #28a745;
+            border-color: #28a745;
+        }
         #print-button:hover { background-color: #218838; }
-        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-        th, td { padding: 12px; border: 1px solid #ddd; text-align: left; }
-        th { background-color: #f2f2f2; font-weight: bold; }
-        .nav-link { display: block; text-align: center; margin-top: 20px; }
+        
+        #rekod-container {
+            overflow-x: auto;
+        }
+        table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+            margin-top: 20px;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        th, td {
+            padding: 14px 18px;
+            text-align: left;
+            border-bottom: 1px solid #dee2e6;
+            vertical-align: middle;
+            white-space: nowrap; /* Elak teks terpotong */
+        }
+        /* Tetapkan lebar lajur 'No.' */
+        th:first-child, td:first-child {
+            width: 1%;
+            text-align: right;
+        }
+        th {
+            background-color: #f1f3f5;
+            font-weight: 600;
+            color: #333;
+            text-transform: uppercase;
+            font-size: 12px;
+            letter-spacing: 0.5px;
+        }
+        tbody tr:last-child td {
+            border-bottom: 0;
+        }
+        tbody tr:hover {
+            background-color: #f8f9fa;
+        }
+        
+        .status-badge {
+            padding: 5px 12px;
+            border-radius: 15px;
+            font-weight: 600;
+            font-size: 12px;
+            display: inline-block;
+            text-align: center;
+            min-width: 60px;
+        }
+        .status-baru { background-color: #fff0c2; color: #7a5c00; }
+        .status-dilihat { background-color: #e9ecef; color: #495057; }
+        .status-default { background-color: #d1ecf1; color: #0c5460; }
+
+        .nav-link { display: block; text-align: center; margin-top: 25px; color: #0056b3; font-weight: 600; }
         #loading { text-align: center; padding: 50px; font-size: 1.2em; color: #888; }
+        
+        /* ## GAYA BARU: KAWALAN PAGINATION ## */
+        #pagination-controls {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+            margin-top: 25px;
+        }
+        #pagination-controls button {
+            width: 120px;
+        }
+        #pagination-controls button:disabled {
+            background-color: #ced4da;
+            border-color: #ced4da;
+            cursor: not-allowed;
+        }
+        #page-info {
+            font-weight: 600;
+            color: #333;
+        }
+
+        /* ## GAYA BARU: FOOTER HAK CIPTA ## */
+        footer {
+            text-align: center;
+            padding: 20px;
+            margin-top: 30px;
+            color: #888;
+            font-size: 12px;
+        }
         
         @media print {
             body { background-color: #fff; padding: 0; }
-            .container { box-shadow: none; border: 1px solid #ccc; }
-            .controls-container, .nav-link { display: none; }
+            .container { box-shadow: none; border: 0; }
+            .controls-container, .nav-link, #pagination-controls, footer { display: none; }
             h2 { text-align: center; }
+            table { border: 1px solid #999; }
+            th { background-color: #eee; }
+            .status-badge { background-color: #fff !important; color: #000 !important; border: 1px solid #ccc; }
         }
     </style>
 </head>
 <body>
+
     <div class="container">
         <h2>Dashboard Rekod Pergerakan Staf</h2>
         <div class="controls-container">
@@ -63,11 +215,21 @@
         <div id="rekod-container">
             <p id="loading">Memuat turun rekod...</p>
         </div>
+        
+        <div id="pagination-controls">
+            <button id="prev-button" disabled>Sebelum</button>
+            <span id="page-info">Halaman 1</span>
+            <button id="next-button" disabled>Seterusnya</button>
+        </div>
+
         <a href="index.html" class="nav-link">Kembali ke Borang Permohonan</a>
     </div>
+    
+    <footer>
+        <p>Hak Cipta Terpelihara &copy; Harriet Justine, Unit Pengurusan dan Teknologi Maklumat. Inovasi Untuk Semua.</p>
+    </footer>
 
     <script>
-        // PASTIKAN INI ADALAH URL SERVER "BACKEND" ANDA DARI RENDER
         const API_SERVER_URL = 'https://projek-skm-server.onrender.com';
         
         const rekodContainer = document.getElementById('rekod-container');
@@ -77,8 +239,25 @@
         const filterWilayahInput = document.getElementById('filter-wilayah');
         const resetButton = document.getElementById('reset-button');
         const printButton = document.getElementById('print-button');
-        let semuaRekod = [];
+        
+        // ## VARIABEL BARU UNTUK PAGINATION ##
+        const prevButton = document.getElementById('prev-button');
+        const nextButton = document.getElementById('next-button');
+        const pageInfo = document.getElementById('page-info');
+        
+        let semuaRekod = []; // Simpan semua rekod asal
+        let rekodYangDitapis = []; // Simpan rekod selepas ditapis
+        let currentPage = 1;
+        const recordsPerPage = 50; // Papar 50 rekod setiap halaman
 
+        function parseCustomDate(timestampStr) {
+            if (!timestampStr) return null;
+            const parts = timestampStr.split(',');
+            const dateParts = parts[0].split('/');
+            const timeParts = parts[1] ? parts[1].trim().split(':') : ['0', '0', '0'];
+            return new Date(dateParts[2], dateParts[1] - 1, dateParts[0], timeParts[0], timeParts[1], timeParts[2]);
+        }
+        
         function normalizeDateFromTimestamp(timestampStr) {
             if (!timestampStr) return '';
             const datePart = timestampStr.split(',')[0];
@@ -101,50 +280,98 @@
             try {
                 const response = await fetch(`${API_SERVER_URL}/get-rekod`); 
                 if (!response.ok) throw new Error(`Server Error: ${response.statusText}`);
-                semuaRekod = await response.json();
-                paparkanRekod(semuaRekod);
+                
+                let data = await response.json();
+                
+                // Susun data (terkini di atas) sebaik sahaja ia diterima
+                data.sort((a, b) => parseCustomDate(b.timestamp) - parseCustomDate(a.timestamp));
+                
+                semuaRekod = data;
+                rekodYangDitapis = semuaRekod; // Pada mulanya, rekod yang ditapis = semua rekod
+                
+                currentPage = 1; // Tetapkan semula ke halaman 1
+                paparkanRekod(); // Panggil tanpa argumen
             } catch (error) {
                 console.error('Ralat memuat turun rekod:', error);
                 rekodContainer.innerHTML = '<p style="color: red; text-align: center;">Gagal memuat turun rekod. Sila pastikan server backend berjalan dan URL adalah betul.</p>';
             }
         }
 
-        function paparkanRekod(data) {
+        // ## FUNGSI paparkanRekod DIUBAH SUAI ##
+        function paparkanRekod() {
             loadingElement.style.display = 'none';
-            if (!data || data.length === 0) {
+            rekodContainer.innerHTML = ''; // Kosongkan paparan sedia ada
+
+            if (!rekodYangDitapis || rekodYangDitapis.length === 0) {
                 rekodContainer.innerHTML = '<p style="text-align: center;">Tiada rekod ditemui.</p>';
+                // Sembunyikan kawalan pagination jika tiada rekod
+                document.getElementById('pagination-controls').style.display = 'none';
                 return;
             }
-            data.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+            
+            // Tunjukkan kawalan pagination
+            document.getElementById('pagination-controls').style.display = 'flex';
+
+            // Kira rekod untuk halaman semasa
+            const startIndex = (currentPage - 1) * recordsPerPage;
+            const endIndex = startIndex + recordsPerPage;
+            const dataUntukPaparan = rekodYangDitapis.slice(startIndex, endIndex);
+            
             const table = document.createElement('table');
+            const now = new Date();
+
             table.innerHTML = `
                 <thead>
                     <tr>
-                        <th>Timestamp</th> <th>Nama Staf</th> <th>Jenis Pergerakan</th> <th>Destinasi</th>
+                        <th>No.</th> <th>Tarikh Hantar</th> <th>Nama Staf</th> <th>Jenis Pergerakan</th> <th>Destinasi</th>
                         <th>Tarikh Mula</th> <th>Tarikh Akhir</th> <th>Tempat Bertugas</th>
                         <th>Tujuan</th> <th>Status</th>
                     </tr>
                 </thead>
                 <tbody>
-                    ${data.map(rekod => `
-                        <tr>
-                            <td>${(rekod.timestamp || '').split(',')[0]}</td> 
-                            <td>${rekod.nama_staf || ''}</td>
-                            <td>${rekod.jenis_pergerakan || ''}</td>
-                            <td>${rekod.destinasi || ''}</td>
-                            <td>${rekod.tarikh_mula || ''}</td>
-                            <td>${rekod.tarikh_akhir || ''}</td>
-                            <td>${rekod.tempat_bertugas || ''}</td>
-                            <td>${rekod.tujuan || ''}</td>
-                            <td>${rekod.status || ''}</td>
-                        </tr>
-                    `).join('')}
+                    ${dataUntukPaparan.map((rekod, index) => {
+                        const recordDate = parseCustomDate(rekod.timestamp);
+                        const hoursDiff = (now - recordDate) / (1000 * 60 * 60);
+                        let statusPaparan = rekod.status;
+                        let statusClass = 'status-default';
+                        if (rekod.status === 'BARU') {
+                            if (hoursDiff > 24) {
+                                statusPaparan = 'Dilihat';
+                                statusClass = 'status-dilihat';
+                            } else {
+                                statusClass = 'status-baru';
+                            }
+                        }
+
+                        return `
+                            <tr>
+                                <td style="text-align: right;">${startIndex + index + 1}</td>
+                                <td>${(rekod.timestamp || '').split(',')[0]}</td> 
+                                <td>${rekod.nama_staf || ''}</td>
+                                <td>${rekod.jenis_pergerakan || ''}</td>
+                                <td>${rekod.destinasi || ''}</td>
+                                <td>${rekod.tarikh_mula || ''}</td>
+                                <td>${rekod.tarikh_akhir || ''}</td>
+                                <td>${rekod.tempat_bertugas || ''}</td>
+                                <td>${rekod.tujuan || ''}</td>
+                                <td><span class="status-badge ${statusClass}">${statusPaparan}</span></td>
+                            </tr>
+                        `;
+                    }).join('')}
                 </tbody>
             `;
-            rekodContainer.innerHTML = '';
+            
             rekodContainer.appendChild(table);
+            
+            // Kemas kini butang pagination
+            const totalPages = Math.ceil(rekodYangDitapis.length / recordsPerPage);
+            pageInfo.textContent = `Halaman ${currentPage} dari ${totalPages}`;
+            
+            prevButton.disabled = (currentPage === 1);
+            nextButton.disabled = (currentPage === totalPages || totalPages === 0);
         }
 
+        // ## FUNGSI saringRekod DIUBAH SUAI ##
         function saringRekod() {
             const tarikhDipilih = filterTarikhInput.value;
             const namaDimasukkan = filterNamaInput.value.toLowerCase();
@@ -167,7 +394,9 @@
                 rekodDisaring = rekodDisaring.filter(rekod => rekod.tempat_bertugas === wilayahDipilih);
             }
             
-            paparkanRekod(rekodDisaring);
+            rekodYangDitapis = rekodDisaring; // Simpan hasil tapisan
+            currentPage = 1; // Tetapkan semula ke halaman 1
+            paparkanRekod(); // Paparkan halaman pertama hasil tapisan
         }
 
         document.addEventListener('DOMContentLoaded', muatNaikRekod);
@@ -179,11 +408,30 @@
             filterTarikhInput.value = '';
             filterNamaInput.value = '';
             filterWilayahInput.value = '';
-            paparkanRekod(semuaRekod);
+            
+            rekodYangDitapis = semuaRekod; // Reset tapisan
+            currentPage = 1;
+            paparkanRekod();
         });
         
         printButton.addEventListener('click', () => {
             window.print();
+        });
+        
+        // ## EVENT LISTENER BARU UNTUK PAGINATION ##
+        prevButton.addEventListener('click', () => {
+            if (currentPage > 1) {
+                currentPage--;
+                paparkanRekod();
+            }
+        });
+        
+        nextButton.addEventListener('click', () => {
+            const totalPages = Math.ceil(rekodYangDitapis.length / recordsPerPage);
+            if (currentPage < totalPages) {
+                currentPage++;
+                paparkanRekod();
+            }
         });
     </script>
 </body>
