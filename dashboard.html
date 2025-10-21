@@ -67,7 +67,7 @@
     </div>
 
     <script>
-        // Gantikan dengan URL server backend anda yang betul
+        // PASTIKAN INI ADALAH URL SERVER "BACKEND" ANDA DARI RENDER
         const API_SERVER_URL = 'https://projek-skm-server.onrender.com';
         
         const rekodContainer = document.getElementById('rekod-container');
@@ -81,9 +81,7 @@
 
         function normalizeDateFromTimestamp(timestampStr) {
             if (!timestampStr) return '';
-            // Ambil bahagian sebelum koma (iaitu tarikh sahaja)
             const datePart = timestampStr.split(',')[0];
-            // Tukar format DD/MM/YYYY kepada YYYY-MM-DD
             if (datePart.includes('/')) {
                 const parts = datePart.split('/');
                 if (parts.length === 3) {
@@ -93,7 +91,7 @@
                     return `${year}-${month}-${day}`;
                 }
             }
-            return datePart; // Pulangkan asal jika format tidak dijangka
+            return datePart;
         }
 
         async function muatNaikRekod() {
@@ -130,10 +128,14 @@
                 <tbody>
                     ${data.map(rekod => `
                         <tr>
-                            <td>${rekod.timestamp || ''}</td> <td>${rekod.nama_staf || ''}</td>
-                            <td>${rekod.jenis_pergerakan || ''}</td> <td>${rekod.destinasi || ''}</td>
-                            <td>${rekod.tarikh_mula || ''}</td> <td>${rekod.tarikh_akhir || ''}</td>
-                            <td>${rekod.tempat_bertugas || ''}</td> <td>${rekod.tujuan || ''}</td>
+                            <td>${(rekod.timestamp || '').split(',')[0]}</td> 
+                            <td>${rekod.nama_staf || ''}</td>
+                            <td>${rekod.jenis_pergerakan || ''}</td>
+                            <td>${rekod.destinasi || ''}</td>
+                            <td>${rekod.tarikh_mula || ''}</td>
+                            <td>${rekod.tarikh_akhir || ''}</td>
+                            <td>${rekod.tempat_bertugas || ''}</td>
+                            <td>${rekod.tujuan || ''}</td>
                             <td>${rekod.status || ''}</td>
                         </tr>
                     `).join('')}
@@ -143,7 +145,6 @@
             rekodContainer.appendChild(table);
         }
 
-        // ## PERUBAHAN LOGIK SARINGAN DI SINI ##
         function saringRekod() {
             const tarikhDipilih = filterTarikhInput.value;
             const namaDimasukkan = filterNamaInput.value.toLowerCase();
@@ -152,7 +153,6 @@
             let rekodDisaring = semuaRekod;
 
             if (tarikhDipilih) {
-                // Bandingkan dengan tarikh dari timestamp yang telah dinormalisasikan
                 rekodDisaring = rekodDisaring.filter(rekod => {
                     const tarikhHantar = normalizeDateFromTimestamp(rekod.timestamp);
                     return tarikhHantar === tarikhDipilih;
