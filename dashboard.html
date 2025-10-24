@@ -10,7 +10,7 @@
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
             background-color: #f4f7f6;
             margin: 0;
-            padding: 10px; /* Kurangkan padding pada body untuk skrin kecil */
+            padding: 10px; 
             display: flex;
             flex-direction: column;
             min-height: 100vh;
@@ -19,93 +19,87 @@
             max-width: 1400px;
             margin: auto;
             background-color: #ffffff;
-            padding: 20px; /* Kurangkan padding container */
+            padding: 20px; 
             border-radius: 12px;
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
             width: 100%;
             flex-grow: 1;
             box-sizing: border-box;
-            overflow: hidden; /* Elak container melimpah */
+            overflow: hidden; 
         }
         h2 {
             text-align: center;
             color: #222;
             border-bottom: 2px solid #e0e0e0;
             padding-bottom: 15px;
-            margin-bottom: 20px; /* Kurangkan margin bawah */
-            font-size: 1.5em; /* Kecilkan saiz tajuk sedikit */
+            margin-bottom: 20px; 
+            font-size: 1.5em; 
         }
         .controls-container {
             background-color: #f8f9fa;
-            padding: 15px; /* Kurangkan padding */
+            padding: 15px; 
             border-radius: 8px;
-            margin-bottom: 20px; /* Kurangkan margin */
+            margin-bottom: 20px; 
             display: flex;
-            flex-direction: column; /* Susun penapis secara menegak pada mulanya */
-            gap: 15px; /* Jarak antara elemen */
+            flex-direction: column; 
+            gap: 15px; 
         }
         .filter-group {
             display: flex;
-            flex-direction: column; /* Susun label & input menegak */
+            flex-direction: column; 
             gap: 10px;
-            width: 100%; /* Ambil lebar penuh */
+            width: 100%; 
         }
         .filter-group label {
             font-weight: 600;
             color: #333;
-            margin-bottom: 3px; /* Jarak bawah label */
+            margin-bottom: 3px; 
         }
         input[type="date"], input[type="text"], select, button {
             padding: 10px 12px;
             border-radius: 6px;
             border: 1px solid #ced4da;
             font-size: 14px;
-            width: 100%; /* Lebar penuh untuk input */
+            width: 100%; 
             box-sizing: border-box;
         }
-         button { /* Saiz butang lebih konsisten */
+         button { 
              width: auto;
              padding: 10px 15px;
          }
-        .controls-buttons { /* Kumpulan butang reset & cetak */
+        .controls-buttons { 
              display: flex;
              gap: 10px;
              justify-content: space-between;
              width: 100%;
          }
-
-        /* ## PERUBAHAN UTAMA UNTUK RESPONSIVENESS JADUAL ## */
         #rekod-container {
             width: 100%;
-            overflow-x: auto; /* Membenarkan skrol mendatar */
-            -webkit-overflow-scrolling: touch; /* Skrol lancar pada iOS */
+            overflow-x: auto; 
+            -webkit-overflow-scrolling: touch; 
         }
         table {
             width: 100%;
-            min-width: 900px; /* Tetapkan lebar minimum jadual, paksa skrol jika skrin < 900px */
+            min-width: 900px; 
             border-collapse: separate;
             border-spacing: 0;
             margin-top: 20px;
             border: 1px solid #dee2e6;
             border-radius: 8px;
-            /* Dibuang: table-layout: fixed; */
-            /* Dibuang: overflow: hidden; */
         }
         th, td {
-            padding: 12px 15px; /* Sedikit kurang padding */
+            padding: 12px 15px; 
             text-align: left;
             border-bottom: 1px solid #dee2e6;
             vertical-align: middle;
-            white-space: nowrap; /* Elak teks wrap dalam sel KECUALI Tujuan */
+            white-space: nowrap; 
         }
-        /* Benarkan wrap untuk lajur panjang seperti Tujuan */
          td.col-tujuan, th.col-tujuan,
          td.col-destinasi, th.col-destinasi {
              white-space: normal;
          }
-
         th:first-child, td:first-child {
-            width: auto; /* Biarkan No. ikut saiz */
+            width: auto; 
             text-align: right;
         }
         th {
@@ -113,10 +107,10 @@
             font-weight: 600;
             color: #333;
             text-transform: uppercase;
-            font-size: 11px; /* Kecilkan font header */
+            font-size: 11px; 
             letter-spacing: 0.5px;
-            position: sticky; /* Lekatkan header semasa skrol */
-            top: 0; /* Lekatkan di atas */
+            position: sticky; 
+            top: 0; 
             z-index: 1;
         }
         tbody tr:last-child td {
@@ -125,36 +119,31 @@
         tbody tr:hover {
             background-color: #f8f9fa;
         }
-        
         .status-badge { padding: 5px 10px; border-radius: 15px; font-weight: 600; font-size: 11px; display: inline-block; text-align: center; min-width: 50px;}
         .status-baru { background-color: #fff0c2; color: #7a5c00; }
         .status-dilihat { background-color: #e9ecef; color: #495057; }
-        .status-default { background-color: #d1ecf1; color: #0c5460; }
-
+        .status-default { background-color: #d1ecf1; color: #0c5c60; }
         .nav-link { display: block; text-align: center; margin-top: 25px; color: #0056b3; font-weight: 600; }
         #loading { text-align: center; padding: 50px; font-size: 1.2em; color: #888; }
-        
         #pagination-controls { display: flex; justify-content: center; align-items: center; gap: 10px; margin-top: 25px; }
-        #pagination-controls button { width: auto; padding: 8px 15px; } /* Kecilkan butang pagination */
+        #pagination-controls button { width: auto; padding: 8px 15px; } 
         #pagination-controls button:disabled { background-color: #ced4da; border-color: #ced4da; cursor: not-allowed; }
         #page-info { font-weight: 600; color: #333; font-size: 14px; }
-
         footer { text-align: center; padding: 20px 10px; margin-top: 30px; color: #888; font-size: 12px; }
         
-        /* ## MEDIA QUERY UNTUK SKRIN LEBIH BESAR (Desktop) ## */
         @media (min-width: 768px) {
              body { padding: 20px; }
              .container { padding: 30px; }
              .controls-container {
-                 flex-direction: row; /* Kembali ke susunan mendatar */
+                 flex-direction: row; 
                  justify-content: space-between;
              }
              .filter-group {
-                 flex-direction: row; /* Susun penapis mendatar */
-                 width: auto; /* Lebar auto */
+                 flex-direction: row; 
+                 width: auto; 
              }
              .filter-group label { margin-bottom: 0; }
-              input, select { width: auto; } /* Lebar input auto */
+              input, select { width: auto; } 
              .controls-buttons { width: auto; }
              h2 { font-size: 1.8em; }
              th, td { padding: 14px 18px; font-size: 14px; }
@@ -162,13 +151,12 @@
              .status-badge { padding: 5px 12px; font-size: 12px; min-width: 60px;}
              #pagination-controls button { width: 120px; }
          }
-
         @media print {
             body { background-color: #fff; padding: 0; font-size: 9pt; width: 100%; }
             .container { box-shadow: none; border: 0; width: 100% !important; padding: 0; }
             .controls-container, .nav-link, #pagination-controls, footer { display: none; }
             h2 { text-align: center; font-size: 14pt; margin-bottom: 15px; }
-            #rekod-container { overflow: visible; } /* Matikan skrol semasa cetak */
+            #rekod-container { overflow: visible; } 
             table { width: 100%; border: 1px solid #999; table-layout: auto; min-width: 0; }
             th, td { padding: 5px 6px; font-size: 8pt; white-space: normal; word-wrap: break-word; border-bottom: 1px solid #ccc; }
             th { background-color: #eee; font-weight: 600; }
@@ -194,11 +182,11 @@
                     <option value="SKM Wilayah PBS">SKM Wilayah PBS</option>
                     <option value="SKM Wilayah PBU">SKM Wilayah PBU</option>
                     <option value="SKM W.P Labuan">SKM W.P Labuan</option>
-                    <option value="SKM Wilayah Kudat">SKM Wilayah Kudat</option>
                     <option value="SKM Wilayah Beaufort">SKM Wilayah Beaufort</option>
                     <option value="SKM Wilayah Keningau">SKM Wilayah Keningau</option>
                     <option value="SKM Wilayah Ranau">SKM Wilayah Ranau</option>
                     <option value="SKM Wilayah Kota Marudu">SKM Wilayah Kota Marudu</option>
+                    <option value="SKM Wilayah Kudat">SKM Wilayah Kudat</option>
                     <option value="SKM Wilayah Sandakan">SKM Wilayah Sandakan</option>
                     <option value="SKM Wilayah Lahad Datu">SKM Wilayah Lahad Datu</option>
                     <option value="SKM Wilayah Tawau">SKM Wilayah Tawau</option>
@@ -225,9 +213,7 @@
     </footer>
 
     <script>
-        // PASTIKAN URL SERVER BETUL
         const API_SERVER_URL = 'https://projek-skm-server.onrender.com';
-        
         const rekodContainer = document.getElementById('rekod-container');
         const loadingElement = document.getElementById('loading');
         const filterTarikhInput = document.getElementById('filter-tarikh');
@@ -249,14 +235,14 @@
             const parts = timestampStr.split(',');
             const dateParts = parts[0].split('/');
             const timeParts = parts[1] ? parts[1].trim().split(':') : ['0', '0', '0'];
-            if (dateParts.length !== 3 || timeParts.length !== 3) return null; // Elak ralat jika format salah
+            if (dateParts.length !== 3 || timeParts.length !== 3) return null;
             return new Date(dateParts[2], dateParts[1] - 1, dateParts[0], timeParts[0], timeParts[1], timeParts[2]);
         }
         
         function normalizeDateFromTimestamp(timestampStr) {
             if (!timestampStr) return '';
             const dateObj = parseCustomDate(timestampStr);
-            if (!dateObj) return ''; // Pulangkan string kosong jika tarikh tidak sah
+            if (!dateObj) return ''; 
              const year = dateObj.getFullYear();
              const month = String(dateObj.getMonth() + 1).padStart(2, '0');
              const day = String(dateObj.getDate()).padStart(2, '0');
@@ -265,23 +251,19 @@
 
         async function muatNaikRekod() {
              loadingElement.style.display = 'block';
-             rekodContainer.innerHTML = '<p id="loading">Memuat turun rekod...</p>'; // Reset ke loading
-             document.getElementById('pagination-controls').style.display = 'none'; // Sembunyi pagination semasa loading
+             rekodContainer.innerHTML = '<p id="loading">Memuat turun rekod...</p>'; 
+             document.getElementById('pagination-controls').style.display = 'none'; 
             try {
                 const response = await fetch(`${API_SERVER_URL}/get-rekod`);
                 if (!response.ok) throw new Error(`Server Error: ${response.statusText}`);
                 let data = await response.json();
-                
-                 // Pastikan data adalah array
                  if (!Array.isArray(data)) {
                      console.error("Data diterima bukan array:", data);
-                     data = []; // Jadikan array kosong jika format salah
+                     data = []; 
                  }
-
                 data.sort((a, b) => {
                      const dateA = parseCustomDate(a.timestamp);
                      const dateB = parseCustomDate(b.timestamp);
-                     // Letak rekod tanpa timestamp di bawah
                      if (!dateA) return 1;
                      if (!dateB) return -1;
                      return dateB - dateA;
@@ -300,20 +282,17 @@
         function paparkanRekod() {
             loadingElement.style.display = 'none';
             rekodContainer.innerHTML = '';
-
             if (!rekodYangDitapis || rekodYangDitapis.length === 0) {
                 rekodContainer.innerHTML = '<p style="text-align: center;">Tiada rekod ditemui.</p>';
                 document.getElementById('pagination-controls').style.display = 'none';
                 return;
             }
-            
             document.getElementById('pagination-controls').style.display = 'flex';
             const startIndex = (currentPage - 1) * recordsPerPage;
             const endIndex = startIndex + recordsPerPage;
             const dataUntukPaparan = rekodYangDitapis.slice(startIndex, endIndex);
             const table = document.createElement('table');
             const now = new Date();
-
             table.innerHTML = `
                 <thead>
                     <tr>
@@ -332,7 +311,7 @@
                 <tbody>
                     ${dataUntukPaparan.map((rekod, index) => {
                         const recordDate = parseCustomDate(rekod.timestamp);
-                        const hoursDiff = recordDate ? (now - recordDate) / (1000 * 60 * 60) : Infinity; // Kira beza jam
+                        const hoursDiff = recordDate ? (now - recordDate) / (1000 * 60 * 60) : Infinity; 
                         let statusPaparan = rekod.status || 'N/A';
                         let statusClass = 'status-default';
                         if (rekod.status === 'BARU') {
@@ -360,7 +339,6 @@
                     }).join('')}
                 </tbody>
             `;
-            
             rekodContainer.appendChild(table);
             const totalPages = Math.ceil(rekodYangDitapis.length / recordsPerPage);
             pageInfo.textContent = `Halaman ${currentPage} dari ${totalPages}`;
