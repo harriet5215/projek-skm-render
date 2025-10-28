@@ -117,7 +117,9 @@
     </footer>
 
     <script>
+        // PASTIKAN URL SERVER BETUL
         const API_SERVER_URL = 'https://projek-skm-server.onrender.com';
+        
         const rekodContainer = document.getElementById('rekod-container');
         const loadingElement = document.getElementById('loading');
         const filterTarikhInput = document.getElementById('filter-tarikh');
@@ -134,46 +136,84 @@
         let currentPage = 1;
         const recordsPerPage = 50;
 
-        function parseTimestampToUTCMillis(timestampStr) { /* ... (fungsi ini dikekalkan) ... */ 
-             if (!timestampStr || typeof timestampStr !== 'string') return null;
-             const parts = timestampStr.split(','); if (parts.length < 1) return null;
-             const datePart = parts[0].trim(); const timePart = parts[1] ? parts[1].trim() : '00:00:00';
-             if (datePart.includes('/')) {
-                 const dateParts = datePart.split('/');
-                 if (dateParts.length === 3) {
-                     const timeParts = timePart.split(':');
-                     const yyyy = parseInt(dateParts[2], 10); const MM = parseInt(dateParts[1], 10) - 1; const dd = parseInt(dateParts[0], 10);
-                     const hh = parseInt(timeParts[0] || '0', 10); const mm = parseInt(timeParts[1] || '0', 10); const ss = parseInt(timeParts[2] || '0', 10);
-                     if (!isNaN(yyyy) && !isNaN(MM) && !isNaN(dd) && !isNaN(hh) && !isNaN(mm) && !isNaN(ss)) {
-                        const utcMillis = Date.UTC(yyyy, MM, dd, hh, mm, ss);
-                        const tempDate = new Date(utcMillis);
-                        if (tempDate.getUTCFullYear() === yyyy && tempDate.getUTCMonth() === MM && tempDate.getUTCDate() === dd) { return utcMillis; }
-                     }
+        function parseTimestampToUTCMillis(timestampStr) {
+            if (!timestampStr || typeof timestampStr !== 'string') return null;
+            const parts = timestampStr.split(',');
+            if (parts.length < 1) return null;
+            const datePart = parts[0].trim();
+            const timePart = parts[1] ? parts[1].trim() : '00:00:00';
+            if (datePart.includes('/')) {
+                const dateParts = datePart.split('/');
+                if (dateParts.length === 3) {
+                    const timeParts = timePart.split(':');
+                    const yyyy = parseInt(dateParts[2], 10);
+                    const MM = parseInt(dateParts[1], 10) - 1;
+                    const dd = parseInt(dateParts[0], 10);
+                    const hh = parseInt(timeParts[0] || '0', 10);
+                    const mm = parseInt(timeParts[1] || '0', 10);
+                    const ss = parseInt(timeParts[2] || '0', 10);
+                    if (!isNaN(yyyy) && !isNaN(MM) && !isNaN(dd) && !isNaN(hh) && !isNaN(mm) && !isNaN(ss)) {
+                       const utcMillis = Date.UTC(yyyy, MM, dd, hh, mm, ss);
+                       const tempDate = new Date(utcMillis);
+                       if (tempDate.getUTCFullYear() === yyyy && tempDate.getUTCMonth() === MM && tempDate.getUTCDate() === dd) { return utcMillis; }
+                    }
+                }
+            }
+            try {
+                 const dateObj = new Date(timestampStr);
+                 if (!isNaN(dateObj.getTime())) { return dateObj.getTime(); }
+            } catch (e) { /* Abaikan */ }
+             console.warn("Gagal parse timestamp:", timestampStr);
+            return null;
+        }
+        
+        function normalizeDateFromTimestamp(timestampStr) {
+            const millis = parseTimestampToUTCMillis(timestampStr);
+            if (!millis) return ''; 
+             const dateObj = new Date(millis);
+             const year = dateObj.getUTCFullYear();
+             const month = String(dateObj.getUTCMonth() + 1).padStart(2, '0');
+             const day = String(dateObj.getUTCDate()).padStart(2, '0');
+             return `${year}-${month}-${day}`;
+        }
+
+        async function muatNaikRekod() {
+             loadingElement.style.display = 'block';
+             rekodContainer.innerHTML = '<p id="loading">Memuat turun rekod...</p>'; 
+             document.getElementById('pagination-controls').style.display = 'none'; 
+            try {
+                const response = await fetch(`${API_SERVER_URL}/get-rekod`, { cache: 'no-cache' }); 
+                if (!response.ok) throw new Error(`Server Error: ${response.statusText}`);
+                let data = await response.json();
+                 if (!Array.isArray(data)) {
+                     console.error("Data diterima bukan array:", data);
+                     data = []; 
                  }
-             }
-             try { const dateObj = new Date(timestampStr); if (!isNaN(dateObj.getTime())) { return dateObj.getTime(); }
-             } catch (e) { /* Abaikan */ }
-              console.warn("Gagal parse timestamp:", timestampStr); return null;
-        }
-        function normalizeDateFromTimestamp(timestampStr) { /* ... (fungsi ini dikekalkan) ... */ 
-             const millis = parseTimestampToUTCMillis(timestampStr); if (!millis) return ''; 
-              const dateObj = new Date(millis); const year = dateObj.getUTCFullYear(); const month = String(dateObj.getUTCMonth() + 1).padStart(2, '0'); const day = String(dateObj.getUTCDate()).padStart(2, '0'); return `${year}-${month}-${day}`;
+                
+                // ## SUSUNAN DIPASTIKAN BETUL DI SINI ##
+                data.sort((a, b) => {
+                     const timeA = parseTimestampToUTCMillis(a.timestamp);
+                     const timeB = parseTimestampToUTCMillis(b.timestamp);
+                     if (timeA === null && timeB === null) return 0; 
+                     if (timeA === null) return 1;          
+                     if (timeB === null) return -1;          
+                     return timeB - timeA; // Susun yang terbaru dahulu (milisaat B tolak milisaat A)
+                 });
+                 
+                semuaRekod = data;
+                rekodYangDitapis = semuaRekod;
+                currentPage = 1;
+                paparkanRekod();
+            } catch (error) {
+                console.error('Ralat memuat turun rekod:', error);
+                rekodContainer.innerHTML = '<p style="color: red; text-align: center;">Gagal memuat turun rekod. Sila pastikan server backend berjalan dan URL adalah betul.</p>';
+                 document.getElementById('pagination-controls').style.display = 'none';
+            }
         }
 
-        async function muatNaikRekod() { /* ... (fungsi ini dikekalkan) ... */ 
-             loadingElement.style.display = 'block'; rekodContainer.innerHTML = '<p id="loading">Memuat turun rekod...</p>'; document.getElementById('pagination-controls').style.display = 'none'; 
-             try { const response = await fetch(`${API_SERVER_URL}/get-rekod`, { cache: 'no-cache' }); if (!response.ok) throw new Error(`Server Error: ${response.statusText}`); let data = await response.json(); if (!Array.isArray(data)) { console.error("Data diterima bukan array:", data); data = []; }
-                 data.sort((a, b) => { const timeA = parseTimestampToUTCMillis(a.timestamp); const timeB = parseTimestampToUTCMillis(b.timestamp); if (timeA === null && timeB === null) return 0; if (timeA === null) return 1; if (timeB === null) return -1; return timeB - timeA; });
-                 semuaRekod = data; rekodYangDitapis = semuaRekod; currentPage = 1; paparkanRekod();
-             } catch (error) { console.error('Ralat memuat turun rekod:', error); rekodContainer.innerHTML = '<p style="color: red; text-align: center;">Gagal memuat turun rekod. Sila pastikan server backend berjalan dan URL adalah betul.</p>'; document.getElementById('pagination-controls').style.display = 'none'; }
-        }
-
-        // ## PERUBAHAN UTAMA DI SINI ##
         function paparkanRekod() {
             loadingElement.style.display = 'none';
             rekodContainer.innerHTML = ''; 
-
-            console.log("Memaparkan data untuk halaman:", currentPage, rekodYangDitapis); // DEBUG
 
             if (!rekodYangDitapis || rekodYangDitapis.length === 0) {
                 rekodContainer.innerHTML = '<p style="text-align: center;">Tiada rekod ditemui.</p>';
@@ -186,13 +226,10 @@
             const endIndex = startIndex + recordsPerPage;
             const dataUntukPaparan = rekodYangDitapis.slice(startIndex, endIndex);
             
-            console.log("Data slice:", dataUntukPaparan); // DEBUG
-
             const table = document.createElement('table');
             const nowMillis = Date.now(); 
 
-            // Bina header jadual
-            let tableHTML = `
+            table.innerHTML = `
                 <thead>
                     <tr>
                         <th class="col-no">No.</th>
@@ -207,68 +244,53 @@
                         <th class="col-status">Status</th>
                     </tr>
                 </thead>
-                <tbody>`;
+                <tbody>
+                    ${dataUntukPaparan.map((rekod, index) => {
+                        const recordMillis = parseTimestampToUTCMillis(rekod.timestamp);
+                        const hoursDiff = recordMillis !== null ? (nowMillis - recordMillis) / (1000 * 60 * 60) : Infinity; 
+                        let statusPaparan = rekod.status || 'N/A';
+                        let statusClass = 'status-default';
+                        
+                        // ## LOGIK STATUS DIPASTIKAN BETUL DI SINI ##
+                        if (rekod.status === 'BARU') {
+                            if (hoursDiff > 24) { 
+                                statusPaparan = 'Dilihat';
+                                statusClass = 'status-dilihat';
+                            } else {
+                                statusClass = 'status-baru'; // Kekal 'BARU'
+                            }
+                        } else {
+                             if (statusPaparan === 'Dilihat') statusClass = 'status-dilihat';
+                             // Anda boleh tambah logik untuk status lain di sini jika perlu
+                        }
+                        
+                        const escapeHTML = (str) => str ? String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#039;') : '';
 
-            // Bina baris jadual menggunakan loop biasa (lebih mudah debug)
-            for (let i = 0; i < dataUntukPaparan.length; i++) {
-                const rekod = dataUntukPaparan[i];
-                const index = i; // Index dalam halaman semasa
-
-                // Pastikan rekod adalah objek yang sah
-                if (typeof rekod !== 'object' || rekod === null) {
-                    console.error("Data rekod tidak sah:", rekod);
-                    continue; // Langkau rekod ini
-                }
-                
-                const recordMillis = parseTimestampToUTCMillis(rekod.timestamp);
-                const hoursDiff = recordMillis !== null ? (nowMillis - recordMillis) / (1000 * 60 * 60) : Infinity; 
-                let statusPaparan = rekod.status || 'N/A';
-                let statusClass = 'status-default';
-                if (rekod.status === 'BARU') {
-                    if (hoursDiff > 24) { 
-                        statusPaparan = 'Dilihat';
-                        statusClass = 'status-dilihat';
-                    } else {
-                        statusClass = 'status-baru'; 
-                    }
-                } else {
-                     if (statusPaparan === 'Dilihat') statusClass = 'status-dilihat';
-                }
-
-                // Guna fungsi escapeHTML untuk keselamatan (elak XSS)
-                const escapeHTML = (str) => str ? String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#039;') : '';
-
-                // Bina string HTML untuk satu baris
-                 let rowHTML = `
-                    <tr>
-                        <td class="col-no">${startIndex + index + 1}</td>
-                        <td class="col-timestamp">${escapeHTML((rekod.timestamp || '').split(',')[0])}</td> 
-                        <td class="col-nama">${escapeHTML(rekod.nama_staf)}</td>
-                        <td class="col-jenis">${escapeHTML(rekod.jenis_pergerakan)}</td>
-                        <td class="col-destinasi">${escapeHTML(rekod.destinasi)}</td>
-                        <td class="col-tarikh">${escapeHTML(rekod.tarikh_mula)}</td>
-                        <td class="col-tarikh">${escapeHTML(rekod.tarikh_akhir)}</td>
-                        <td class="col-tempat">${escapeHTML(rekod.tempat_bertugas)}</td>
-                        <td class="col-tujuan">${escapeHTML(rekod.tujuan)}</td>
-                        <td class="col-status"><span class="status-badge ${statusClass}">${escapeHTML(statusPaparan)}</span></td>
-                    </tr>
-                `;
-                tableHTML += rowHTML; // Tambah baris ke HTML keseluruhan
-            }
-
-            tableHTML += `</tbody>`; // Tutup tbody
-            table.innerHTML = tableHTML; // Masukkan HTML ke dalam elemen jadual
-            
-            rekodContainer.appendChild(table); // Tambah jadual ke dalam container
-
-            // Kemas kini pagination seperti biasa
+                        return `
+                            <tr>
+                                <td class="col-no">${startIndex + index + 1}</td>
+                                <td class="col-timestamp">${escapeHTML((rekod.timestamp || '').split(',')[0])}</td> 
+                                <td class="col-nama">${escapeHTML(rekod.nama_staf)}</td>
+                                <td class="col-jenis">${escapeHTML(rekod.jenis_pergerakan)}</td>
+                                <td class="col-destinasi">${escapeHTML(rekod.destinasi)}</td>
+                                <td class="col-tarikh">${escapeHTML(rekod.tarikh_mula)}</td>
+                                <td class="col-tarikh">${escapeHTML(rekod.tarikh_akhir)}</td>
+                                <td class="col-tempat">${escapeHTML(rekod.tempat_bertugas)}</td>
+                                <td class="col-tujuan">${escapeHTML(rekod.tujuan)}</td>
+                                <td class="col-status"><span class="status-badge ${statusClass}">${escapeHTML(statusPaparan)}</span></td>
+                            </tr>
+                        `;
+                    }).join('')}
+                </tbody>
+            `;
+            rekodContainer.appendChild(table);
             const totalPages = Math.ceil(rekodYangDitapis.length / recordsPerPage);
             pageInfo.textContent = `Halaman ${currentPage} dari ${totalPages}`;
             prevButton.disabled = (currentPage === 1);
             nextButton.disabled = (currentPage === totalPages || totalPages === 0);
         }
 
-        function saringRekod() { /* ... (fungsi ini dikekalkan) ... */ 
+        function saringRekod() {
              const tarikhDipilih = filterTarikhInput.value; const namaDimasukkan = filterNamaInput.value.toLowerCase(); const wilayahDipilih = filterWilayahInput.value; let rekodDisaring = semuaRekod;
              if (tarikhDipilih) { rekodDisaring = rekodDisaring.filter(rekod => { const tarikhHantar = normalizeDateFromTimestamp(rekod.timestamp); return tarikhHantar && tarikhHantar === tarikhDipilih; }); }
              if (namaDimasukkan) { rekodDisaring = rekodDisaring.filter(rekod => rekod.nama_staf && rekod.nama_staf.toLowerCase().includes(namaDimasukkan) ); }
@@ -276,7 +298,6 @@
              rekodYangDitapis = rekodDisaring; currentPage = 1; paparkanRekod();
         }
 
-        // Event Listeners dikekalkan
         document.addEventListener('DOMContentLoaded', muatNaikRekod);
         filterTarikhInput.addEventListener('change', saringRekod);
         filterNamaInput.addEventListener('input', saringRekod);
