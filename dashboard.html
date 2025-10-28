@@ -134,15 +134,14 @@
         let currentPage = 1;
         const recordsPerPage = 50;
 
-        // Fungsi parse tarikh yang lebih robust
-        function parseCustomDate(timestampStr) {
+        // Fungsi parse tarikh yang lebih robust (dan mengembalikan milisaat UTC)
+        function parseTimestampToUTCMillis(timestampStr) {
             if (!timestampStr || typeof timestampStr !== 'string') return null;
-            // Cuba format: "DD/MM/YYYY, HH:MM:SS" ATAU format ISO lain
+            
             const parts = timestampStr.split(',');
+            if (parts.length < 1) return null;
             const datePart = parts[0].trim();
             const timePart = parts[1] ? parts[1].trim() : '00:00:00';
-
-            let dateObj = null;
 
             // Cuba parse DD/MM/YYYY
             if (datePart.includes('/')) {
@@ -150,47 +149,41 @@
                 if (dateParts.length === 3) {
                     const timeParts = timePart.split(':');
                     const yyyy = parseInt(dateParts[2], 10);
-                    const MM = parseInt(dateParts[1], 10) - 1; // Bulan bermula dari 0
+                    const MM = parseInt(dateParts[1], 10) - 1; // Bulan (0-11)
                     const dd = parseInt(dateParts[0], 10);
                     const hh = parseInt(timeParts[0] || '0', 10);
                     const mm = parseInt(timeParts[1] || '0', 10);
                     const ss = parseInt(timeParts[2] || '0', 10);
 
                     if (!isNaN(yyyy) && !isNaN(MM) && !isNaN(dd) && !isNaN(hh) && !isNaN(mm) && !isNaN(ss)) {
-                       dateObj = new Date(Date.UTC(yyyy, MM, dd, hh, mm, ss)); // Guna UTC untuk elak masalah timezone
+                       // Gunakan Date.UTC untuk mendapatkan milisaat sejak epoch
+                       const utcMillis = Date.UTC(yyyy, MM, dd, hh, mm, ss);
                        // Sahkan tarikh (elak kes 31/02 dsb)
-                       if (dateObj && dateObj.getUTCFullYear() === yyyy && dateObj.getUTCMonth() === MM && dateObj.getUTCDate() === dd) {
-                          // Sah
-                       } else {
-                           dateObj = null; // Tarikh tidak sah
+                       const tempDate = new Date(utcMillis);
+                       if (tempDate.getUTCFullYear() === yyyy && tempDate.getUTCMonth() === MM && tempDate.getUTCDate() === dd) {
+                          return utcMillis; // Berjaya parse
                        }
                     }
                 }
             }
             
-            // Jika format di atas gagal, cuba parse terus (mungkin format ISO atau lain)
-            if (!dateObj) {
-                 try {
-                     dateObj = new Date(timestampStr);
-                     // Periksa jika objek Date sah
-                     if (isNaN(dateObj.getTime())) {
-                         dateObj = null;
-                     }
-                 } catch (e) {
-                     dateObj = null;
+            // Jika format di atas gagal, cuba parse terus (mungkin format ISO)
+            try {
+                 const dateObj = new Date(timestampStr);
+                 if (!isNaN(dateObj.getTime())) {
+                     return dateObj.getTime(); // Kembalikan milisaat
                  }
-            }
+            } catch (e) { /* Abaikan ralat parse */ }
 
-             if (!dateObj) {
-                 console.warn("Gagal parse timestamp:", timestampStr);
-             }
-            return dateObj;
+             console.warn("Gagal parse timestamp:", timestampStr);
+            return null; // Gagal parse
         }
         
         function normalizeDateFromTimestamp(timestampStr) {
-            const dateObj = parseCustomDate(timestampStr);
-            if (!dateObj) return ''; 
-             const year = dateObj.getUTCFullYear(); // Guna UTC
+            const millis = parseTimestampToUTCMillis(timestampStr);
+            if (!millis) return ''; 
+             const dateObj = new Date(millis);
+             const year = dateObj.getUTCFullYear();
              const month = String(dateObj.getUTCMonth() + 1).padStart(2, '0');
              const day = String(dateObj.getUTCDate()).padStart(2, '0');
              return `${year}-${month}-${day}`;
@@ -209,16 +202,15 @@
                      data = []; 
                  }
                 
-                // ## PERUBAHAN UTAMA: SUSUN SEBELUM DISIMPAN ##
-                // Pastikan susunan betul walaupun ada timestamp tidak sah
+                // ## PERUBAHAN UTAMA: SUSUN MENGGUNAKAN MILISAAT ##
                 data.sort((a, b) => {
-                     const dateA = parseCustomDate(a.timestamp);
-                     const dateB = parseCustomDate(b.timestamp);
+                     const timeA = parseTimestampToUTCMillis(a.timestamp);
+                     const timeB = parseTimestampToUTCMillis(b.timestamp);
                      // Letak rekod tanpa timestamp atau timestamp tidak sah di bawah
-                     if (!dateA && !dateB) return 0; // Jika kedua-duanya tidak sah, kekal susunan
-                     if (!dateA) return 1;          // Jika A tidak sah, letak A di bawah B
-                     if (!dateB) return -1;          // Jika B tidak sah, letak B di bawah A
-                     return dateB.getTime() - dateA.getTime(); // Susun yang terbaru dahulu (berdasarkan milisaat)
+                     if (timeA === null && timeB === null) return 0; 
+                     if (timeA === null) return 1;          
+                     if (timeB === null) return -1;          
+                     return timeB - timeA; // Susun yang terbaru dahulu
                  });
                  
                 semuaRekod = data;
@@ -245,7 +237,7 @@
             const endIndex = startIndex + recordsPerPage;
             const dataUntukPaparan = rekodYangDitapis.slice(startIndex, endIndex);
             const table = document.createElement('table');
-            const now = new Date(); // Masa semasa di pelayar pengguna
+            const nowMillis = Date.now(); // Masa semasa dalam milisaat UTC
 
             table.innerHTML = `
                 <thead>
@@ -264,11 +256,11 @@
                 </thead>
                 <tbody>
                     ${dataUntukPaparan.map((rekod, index) => {
-                        const recordDate = parseCustomDate(rekod.timestamp);
+                        const recordMillis = parseTimestampToUTCMillis(rekod.timestamp);
                         // ## LOGIK STATUS DIPERBAIKI ##
-                        // Pastikan recordDate wujud sebelum mengira perbezaan
-                        // Kira perbezaan dalam milisaat, kemudian tukar ke jam
-                        const hoursDiff = recordDate ? (now.getTime() - recordDate.getTime()) / (1000 * 60 * 60) : Infinity; 
+                        // Kira perbezaan dalam milisaat
+                        const millisDiff = recordMillis !== null ? nowMillis - recordMillis : Infinity; 
+                        const hoursDiff = millisDiff / (1000 * 60 * 60); // Tukar ke jam
                         
                         let statusPaparan = rekod.status || 'N/A';
                         let statusClass = 'status-default';
@@ -282,7 +274,6 @@
                                 statusClass = 'status-baru'; // Kekal 'BARU' jika belum atau tepat 24 jam
                             }
                         } else {
-                            // Jika status bukan 'BARU', gunakan kelas default atau spesifik jika ada
                              if (statusPaparan === 'Dilihat') statusClass = 'status-dilihat';
                         }
                         
@@ -318,7 +309,6 @@
             if (tarikhDipilih) {
                 rekodDisaring = rekodDisaring.filter(rekod => {
                     const tarikhHantar = normalizeDateFromTimestamp(rekod.timestamp);
-                    // Pastikan tarikhHantar tidak kosong sebelum membandingkan
                     return tarikhHantar && tarikhHantar === tarikhDipilih;
                 });
             }
