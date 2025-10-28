@@ -117,10 +117,7 @@
     </footer>
 
     <script>
-        // ## PENTING: PASTIKAN INI ADALAH URL SERVER "BACKEND" ANDA DARI RENDER ##
-        // Ia sepatutnya berakhir dengan "-server"
         const API_SERVER_URL = 'https://projek-skm-server.onrender.com';
-        
         const rekodContainer = document.getElementById('rekod-container');
         const loadingElement = document.getElementById('loading');
         const filterTarikhInput = document.getElementById('filter-tarikh');
@@ -156,9 +153,7 @@
                     if (!isNaN(yyyy) && !isNaN(MM) && !isNaN(dd) && !isNaN(hh) && !isNaN(mm) && !isNaN(ss)) {
                        const utcMillis = Date.UTC(yyyy, MM, dd, hh, mm, ss);
                        const tempDate = new Date(utcMillis);
-                       if (tempDate.getUTCFullYear() === yyyy && tempDate.getUTCMonth() === MM && tempDate.getUTCDate() === dd) {
-                          return utcMillis;
-                       }
+                       if (tempDate.getUTCFullYear() === yyyy && tempDate.getUTCMonth() === MM && tempDate.getUTCDate() === dd) { return utcMillis; }
                     }
                 }
             }
@@ -185,7 +180,6 @@
              rekodContainer.innerHTML = '<p id="loading">Memuat turun rekod...</p>'; 
              document.getElementById('pagination-controls').style.display = 'none'; 
             try {
-                // ## TAMBAH 'cache: no-cache' UNTUK MEMAKSA AMBIL DATA BARU ##
                 const response = await fetch(`${API_SERVER_URL}/get-rekod`, { cache: 'no-cache' }); 
                 if (!response.ok) throw new Error(`Server Error: ${response.statusText}`);
                 let data = await response.json();
@@ -193,6 +187,10 @@
                      console.error("Data diterima bukan array:", data);
                      data = []; 
                  }
+                
+                // DEBUG: Log data mentah yang diterima
+                console.log("Data mentah diterima:", data);
+
                 data.sort((a, b) => {
                      const timeA = parseTimestampToUTCMillis(a.timestamp);
                      const timeB = parseTimestampToUTCMillis(b.timestamp);
@@ -205,6 +203,10 @@
                 semuaRekod = data;
                 rekodYangDitapis = semuaRekod;
                 currentPage = 1;
+                
+                // DEBUG: Log data selepas disusun
+                console.log("Data selepas disusun (semuaRekod):", semuaRekod);
+
                 paparkanRekod();
             } catch (error) {
                 console.error('Ralat memuat turun rekod:', error);
@@ -216,15 +218,26 @@
         function paparkanRekod() {
             loadingElement.style.display = 'none';
             rekodContainer.innerHTML = '';
+
+             // DEBUG: Log data yang akan dipaparkan (sebelum pagination)
+             console.log("Data untuk dipaparkan (rekodYangDitapis):", rekodYangDitapis);
+             console.log("Halaman semasa:", currentPage);
+
             if (!rekodYangDitapis || rekodYangDitapis.length === 0) {
                 rekodContainer.innerHTML = '<p style="text-align: center;">Tiada rekod ditemui.</p>';
                 document.getElementById('pagination-controls').style.display = 'none';
                 return;
             }
+            
             document.getElementById('pagination-controls').style.display = 'flex';
             const startIndex = (currentPage - 1) * recordsPerPage;
             const endIndex = startIndex + recordsPerPage;
             const dataUntukPaparan = rekodYangDitapis.slice(startIndex, endIndex);
+
+            // DEBUG: Log data selepas pagination (slice)
+            console.log(`Slice: ${startIndex} hingga ${endIndex}`);
+            console.log("Data sebenar dipaparkan (dataUntukPaparan):", dataUntukPaparan);
+            
             const table = document.createElement('table');
             const nowMillis = Date.now(); 
 
@@ -259,6 +272,10 @@
                         } else {
                              if (statusPaparan === 'Dilihat') statusClass = 'status-dilihat';
                         }
+                        
+                        // DEBUG: Log data setiap baris
+                        // console.log(`Baris ${startIndex + index + 1}:`, rekod);
+
                         return `
                             <tr>
                                 <td class="col-no">${startIndex + index + 1}</td>
