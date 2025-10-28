@@ -117,7 +117,10 @@
     </footer>
 
     <script>
+        // ## PENTING: PASTIKAN INI ADALAH URL SERVER "BACKEND" ANDA DARI RENDER ##
+        // Ia sepatutnya berakhir dengan "-server"
         const API_SERVER_URL = 'https://projek-skm-server.onrender.com';
+        
         const rekodContainer = document.getElementById('rekod-container');
         const loadingElement = document.getElementById('loading');
         const filterTarikhInput = document.getElementById('filter-tarikh');
@@ -134,49 +137,37 @@
         let currentPage = 1;
         const recordsPerPage = 50;
 
-        // Fungsi parse tarikh yang lebih robust (dan mengembalikan milisaat UTC)
         function parseTimestampToUTCMillis(timestampStr) {
             if (!timestampStr || typeof timestampStr !== 'string') return null;
-            
             const parts = timestampStr.split(',');
             if (parts.length < 1) return null;
             const datePart = parts[0].trim();
             const timePart = parts[1] ? parts[1].trim() : '00:00:00';
-
-            // Cuba parse DD/MM/YYYY
             if (datePart.includes('/')) {
                 const dateParts = datePart.split('/');
                 if (dateParts.length === 3) {
                     const timeParts = timePart.split(':');
                     const yyyy = parseInt(dateParts[2], 10);
-                    const MM = parseInt(dateParts[1], 10) - 1; // Bulan (0-11)
+                    const MM = parseInt(dateParts[1], 10) - 1;
                     const dd = parseInt(dateParts[0], 10);
                     const hh = parseInt(timeParts[0] || '0', 10);
                     const mm = parseInt(timeParts[1] || '0', 10);
                     const ss = parseInt(timeParts[2] || '0', 10);
-
                     if (!isNaN(yyyy) && !isNaN(MM) && !isNaN(dd) && !isNaN(hh) && !isNaN(mm) && !isNaN(ss)) {
-                       // Gunakan Date.UTC untuk mendapatkan milisaat sejak epoch
                        const utcMillis = Date.UTC(yyyy, MM, dd, hh, mm, ss);
-                       // Sahkan tarikh (elak kes 31/02 dsb)
                        const tempDate = new Date(utcMillis);
                        if (tempDate.getUTCFullYear() === yyyy && tempDate.getUTCMonth() === MM && tempDate.getUTCDate() === dd) {
-                          return utcMillis; // Berjaya parse
+                          return utcMillis;
                        }
                     }
                 }
             }
-            
-            // Jika format di atas gagal, cuba parse terus (mungkin format ISO)
             try {
                  const dateObj = new Date(timestampStr);
-                 if (!isNaN(dateObj.getTime())) {
-                     return dateObj.getTime(); // Kembalikan milisaat
-                 }
-            } catch (e) { /* Abaikan ralat parse */ }
-
+                 if (!isNaN(dateObj.getTime())) { return dateObj.getTime(); }
+            } catch (e) { /* Abaikan */ }
              console.warn("Gagal parse timestamp:", timestampStr);
-            return null; // Gagal parse
+            return null;
         }
         
         function normalizeDateFromTimestamp(timestampStr) {
@@ -194,23 +185,21 @@
              rekodContainer.innerHTML = '<p id="loading">Memuat turun rekod...</p>'; 
              document.getElementById('pagination-controls').style.display = 'none'; 
             try {
-                const response = await fetch(`${API_SERVER_URL}/get-rekod`);
+                // ## TAMBAH 'cache: no-cache' UNTUK MEMAKSA AMBIL DATA BARU ##
+                const response = await fetch(`${API_SERVER_URL}/get-rekod`, { cache: 'no-cache' }); 
                 if (!response.ok) throw new Error(`Server Error: ${response.statusText}`);
                 let data = await response.json();
                  if (!Array.isArray(data)) {
                      console.error("Data diterima bukan array:", data);
                      data = []; 
                  }
-                
-                // ## PERUBAHAN UTAMA: SUSUN MENGGUNAKAN MILISAAT ##
                 data.sort((a, b) => {
                      const timeA = parseTimestampToUTCMillis(a.timestamp);
                      const timeB = parseTimestampToUTCMillis(b.timestamp);
-                     // Letak rekod tanpa timestamp atau timestamp tidak sah di bawah
                      if (timeA === null && timeB === null) return 0; 
                      if (timeA === null) return 1;          
                      if (timeB === null) return -1;          
-                     return timeB - timeA; // Susun yang terbaru dahulu
+                     return timeB - timeA; 
                  });
                  
                 semuaRekod = data;
@@ -237,7 +226,7 @@
             const endIndex = startIndex + recordsPerPage;
             const dataUntukPaparan = rekodYangDitapis.slice(startIndex, endIndex);
             const table = document.createElement('table');
-            const nowMillis = Date.now(); // Masa semasa dalam milisaat UTC
+            const nowMillis = Date.now(); 
 
             table.innerHTML = `
                 <thead>
@@ -257,26 +246,19 @@
                 <tbody>
                     ${dataUntukPaparan.map((rekod, index) => {
                         const recordMillis = parseTimestampToUTCMillis(rekod.timestamp);
-                        // ## LOGIK STATUS DIPERBAIKI ##
-                        // Kira perbezaan dalam milisaat
-                        const millisDiff = recordMillis !== null ? nowMillis - recordMillis : Infinity; 
-                        const hoursDiff = millisDiff / (1000 * 60 * 60); // Tukar ke jam
-                        
+                        const hoursDiff = recordMillis !== null ? (nowMillis - recordMillis) / (1000 * 60 * 60) : Infinity; 
                         let statusPaparan = rekod.status || 'N/A';
                         let statusClass = 'status-default';
-                        
-                        // Hanya tukar kepada 'Dilihat' jika status asal adalah 'BARU' dan sudah LEBIH 24 jam
                         if (rekod.status === 'BARU') {
-                            if (hoursDiff > 24) { // Semak jika perbezaan lebih besar dari 24
+                            if (hoursDiff > 24) { 
                                 statusPaparan = 'Dilihat';
                                 statusClass = 'status-dilihat';
                             } else {
-                                statusClass = 'status-baru'; // Kekal 'BARU' jika belum atau tepat 24 jam
+                                statusClass = 'status-baru'; 
                             }
                         } else {
                              if (statusPaparan === 'Dilihat') statusClass = 'status-dilihat';
                         }
-                        
                         return `
                             <tr>
                                 <td class="col-no">${startIndex + index + 1}</td>
