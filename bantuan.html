@@ -16,7 +16,7 @@
             max-width: 800px;
             margin: 20px auto;
             background-color: #ffffff;
-            padding: 25px;
+            padding: 30px; /* Tambah padding */
             border-radius: 12px;
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
         }
@@ -26,7 +26,7 @@
             border-bottom: 2px solid #e0e0e0;
             padding-bottom: 15px;
             margin-top: 0;
-            margin-bottom: 25px;
+            margin-bottom: 30px; /* Tambah jarak bawah */
         }
         h3 {
             color: #0056b3;
@@ -34,22 +34,31 @@
             margin-bottom: 15px;
             border-bottom: 1px solid #eee;
             padding-bottom: 8px;
+            font-size: 1.2em; /* Besarkan sedikit */
         }
         p, ol {
             margin-bottom: 15px;
             color: #333;
         }
         ol {
-            padding-left: 20px;
+            padding-left: 25px; /* Jarakkan senarai */
+            margin-bottom: 25px; /* Jarak bawah senarai */
         }
         li {
-            margin-bottom: 8px;
+            margin-bottom: 10px; /* Jarak antara item senarai */
         }
-        code {
-            background-color: #e9ecef;
-            padding: 2px 6px;
-            border-radius: 4px;
-            font-family: monospace;
+        strong { /* Gunakan strong untuk penekanan */
+            font-weight: 600;
+            color: #0056b3; /* Warnakan sedikit */
+        }
+        .icon { /* Gaya untuk ikon dalam teks */
+             font-size: 1.1em;
+             vertical-align: middle;
+        }
+        hr { /* Garisan pemisah */
+             border: none;
+             border-top: 1px solid #eee;
+             margin: 30px 0;
         }
         .nav-link {
             display: block;
@@ -58,49 +67,52 @@
             color: #0056b3;
             font-weight: 600;
             text-decoration: none;
+            font-size: 1.1em;
         }
         .nav-link:hover {
             text-decoration: underline;
         }
-        /* Style untuk imej (jika anda mahu menambah) */
+        /* Style untuk imej */
         .instruction-image {
-            max-width: 100%;
+            max-width: 80%; /* Kecilkan sedikit agar tidak terlalu besar */
             height: auto;
             border: 1px solid #ddd;
             border-radius: 6px;
-            margin-top: 10px;
-            margin-bottom: 10px;
+            margin: 15px auto; /* Letak di tengah */
+            display: block; /* Pastikan ia blok */
         }
     </style>
 </head>
 <body>
 
     <div class="container">
-        <h2>Panduan Penggunaan</h2>
+        <h2>Panduan Pengguna</h2>
 
-        <p>Selamat datang ke Sistem Pergerakan Kakitangan SKM. Untuk akses yang lebih mudah, anda boleh menambah ikon aplikasi ini ke skrin utama telefon anda.</p>
+        <p>Selamat datang ke Sistem Pergerakan Kakitangan SKM. Untuk akses yang lebih mudah dan pantas, anda boleh menambah ikon aplikasi ini ke skrin utama telefon pintar anda, sama seperti aplikasi biasa.</p>
 
-        ---
-        ### 📱 Untuk Pengguna Android (Menggunakan Chrome)
+        <hr>
 
-        1.  Buka aplikasi ini menggunakan pelayar web **Google Chrome** di telefon anda.
-        2.  Tekan butang menu Chrome (biasanya **tiga titik menegak** ⋮ di penjuru kanan atas).
-        3.  Cari dan tekan pilihan **"Install app"** (Pasang aplikasi) atau **"Add to Home screen"** (Tambah ke Skrin Utama).
-        4.  Ikut arahan seterusnya untuk mengesahkan penambahan ikon.
-        5.  Ikon aplikasi kini akan muncul di skrin utama telefon anda.
-        
+        <h3><span class="icon">📱</span> Untuk Pengguna Android (Menggunakan Chrome)</h3>
+        <ol>
+            <li>Buka aplikasi ini menggunakan pelayar web <strong>Google Chrome</strong> di telefon anda.</li>
+            <li>Tekan butang menu Chrome (biasanya ikon <strong>tiga titik menegak ⋮</strong> di penjuru kanan atas).</li>
+                         <li>Dalam menu yang muncul, cari dan tekan pilihan <strong>"Install app"</strong> (Pasang aplikasi) atau <strong>"Add to Home screen"</strong> (Tambah ke Skrin Utama).</li>
+                         <li>Ikut arahan seterusnya untuk mengesahkan nama ikon dan tekan <strong>"Add"</strong> atau <strong>"Install"</strong>.</li>
+            <li>Ikon aplikasi kini akan muncul di skrin utama telefon anda untuk akses pantas.</li>
+        </ol>
 
-        ---
-        ### 📱 Untuk Pengguna iPhone/iPad (Menggunakan Safari)
+        <hr>
 
-        1.  Buka aplikasi ini menggunakan pelayar web **Safari** di peranti iOS anda.
-        2.  Tekan butang **Kongsi (Share)** (ikon kotak dengan anak panah ke atas [↑] di bahagian bawah skrin).
-        3.  Skrol ke bawah dalam menu kongsi dan cari pilihan **"Add to Home Screen"** (Tambah ke Skrin Utama).
-        4.  Anda boleh menamakan semula ikon jika mahu, kemudian tekan **"Add"** (Tambah) di penjuru kanan atas.
-        5.  Ikon aplikasi kini akan muncul di skrin utama peranti anda.
-        
+        <h3><span class="icon">📱</span> Untuk Pengguna iPhone/iPad (Menggunakan Safari)</h3>
+        <ol>
+            <li>Buka aplikasi ini menggunakan pelayar web <strong>Safari</strong> di peranti iOS anda.</li>
+            <li>Tekan butang <strong>Kongsi (Share)</strong> (ikon kotak dengan anak panah ke atas <span class="icon">↑</span> di bahagian bawah atau atas skrin).</li>
+                         <li>Dalam helaian kongsi yang muncul, skrol ke bawah dan cari pilihan <strong>"Add to Home Screen"</strong> (Tambah ke Skrin Utama).</li>
+                         <li>Anda boleh menamakan semula ikon jika mahu, kemudian tekan <strong>"Add"</strong> (Tambah) di penjuru kanan atas.</li>
+            <li>Ikon aplikasi kini akan muncul di skrin utama peranti anda.</li>
+        </ol>
 
-        ---
+        <hr>
 
         <a href="index.html" class="nav-link">Kembali ke Aplikasi Utama</a>
     </div>
