@@ -6,13 +6,21 @@
     <title>Dashboard Rekod Pergerakan - SKM</title>
     
     <style>
-        /* Gaya CSS dikekalkan */
+        /* Gaya Asas Skrin */
         body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; background-color: #f4f7f6; margin: 0; padding: 10px; display: flex; flex-direction: column; min-height: 100vh; }
         .container { max-width: 1400px; margin: auto; background-color: #ffffff; padding: 20px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05); width: 100%; flex-grow: 1; box-sizing: border-box; overflow: hidden; }
+        
+        /* Tajuk Skrin */
         h2 { text-align: center; color: #222; border-bottom: 2px solid #e0e0e0; padding-bottom: 15px; margin-bottom: 20px; font-size: 1.5em; }
+        
+        /* Tajuk Khas Cetakan (Disembunyikan di Skrin) */
+        .print-header { display: none; }
+
         .controls-container { background-color: #f8f9fa; padding: 15px; border-radius: 8px; margin-bottom: 20px; display: flex; flex-direction: column; gap: 15px; }
         .filter-group { display: flex; flex-direction: column; gap: 10px; width: 100%; }
         .filter-group label { font-weight: 600; color: #333; margin-bottom: 3px; }
+        
+        /* Input Styles */
         input[type="date"], input[type="text"], select, button { padding: 10px 12px; border-radius: 6px; border: 1px solid #ced4da; font-size: 14px; width: 100%; box-sizing: border-box; }
          button { width: auto; padding: 10px 15px; cursor: pointer; background-color: #0056b3; color: white; border-color: #0056b3; font-weight: 600; transition: background-color 0.2s ease;}
          button:hover { background-color: #004494; }
@@ -21,6 +29,8 @@
         #reset-button:hover { background-color: #5a6268; }
         #print-button { background-color: #28a745; border-color: #28a745; }
         #print-button:hover { background-color: #218838; }
+        
+        /* Table Styles */
         #rekod-container { width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; }
         table { width: 100%; min-width: 900px; border-collapse: separate; border-spacing: 0; margin-top: 20px; border: 1px solid #dee2e6; border-radius: 8px; }
         th, td { padding: 12px 15px; text-align: left; border-bottom: 1px solid #dee2e6; vertical-align: middle; white-space: nowrap; }
@@ -29,10 +39,14 @@
         th { background-color: #f1f3f5; font-weight: 600; color: #333; text-transform: uppercase; font-size: 11px; letter-spacing: 0.5px; position: sticky; top: 0; z-index: 1; }
         tbody tr:last-child td { border-bottom: 0; }
         tbody tr:hover { background-color: #f8f9fa; }
+        
+        /* Status Badges */
         .status-badge { padding: 5px 10px; border-radius: 15px; font-weight: 600; font-size: 11px; display: inline-block; text-align: center; min-width: 50px;}
         .status-baru { background-color: #fff0c2; color: #7a5c00; }
         .status-dilihat { background-color: #e9ecef; color: #495057; }
         .status-default { background-color: #d1ecf1; color: #0c5c60; }
+        
+        /* UI Elements */
         .nav-link { display: block; text-align: center; margin-top: 25px; color: #0056b3; font-weight: 600; }
         #loading { text-align: center; padding: 50px; font-size: 1.2em; color: #888; }
         #pagination-controls { display: flex; justify-content: center; align-items: center; gap: 10px; margin-top: 25px; }
@@ -42,17 +56,9 @@
         footer { text-align: center; padding: 20px 10px; margin-top: 30px; color: #888; font-size: 12px; }
         
         .time-display { font-size: 0.9em; color: #555; }
-        .duration-badge { 
-            display: inline-block; 
-            padding: 2px 6px; 
-            background-color: #e2e3e5; 
-            color: #383d41; 
-            border-radius: 4px; 
-            font-size: 0.85em;
-            margin-top: 4px;
-            font-weight: bold;
-        }
+        .duration-badge { display: inline-block; padding: 2px 6px; background-color: #e2e3e5; color: #383d41; border-radius: 4px; font-size: 0.85em; margin-top: 4px; font-weight: bold; }
 
+        /* Desktop View */
         @media (min-width: 768px) {
              body { padding: 20px; }
              .container { padding: 30px; }
@@ -67,31 +73,146 @@
              .status-badge { padding: 5px 12px; font-size: 12px; min-width: 60px;}
              #pagination-controls button { width: 120px; }
          }
+
+        /* ## CETAKAN A4 YANG CANTIK ## */
         @media print {
-            body { background-color: #fff; padding: 0; font-size: 9pt; width: 100%; }
-            .container { box-shadow: none; border: 0; width: 100% !important; padding: 0; }
-            .controls-container, .nav-link, #pagination-controls, footer { display: none; }
-            h2 { text-align: center; font-size: 14pt; margin-bottom: 15px; }
-            #rekod-container { overflow: visible; }
-            table { width: 100%; border: 1px solid #999; table-layout: auto; min-width: 0; }
-            th, td { padding: 5px 6px; font-size: 8pt; white-space: normal; word-wrap: break-word; border-bottom: 1px solid #ccc; }
-            th { background-color: #eee; font-weight: 600; }
-            .status-badge { background-color: #fff !important; color: #000 !important; border: 1px solid #ccc; padding: 2px 5px; font-size: 7pt; }
-            tr { page-break-inside: avoid; }
+            @page {
+                size: landscape; /* Paksa orientasi Melintang */
+                margin: 1cm; /* Margin kertas */
+            }
+
+            body {
+                background-color: #fff;
+                padding: 0;
+                font-size: 9pt; /* Saiz font optimum untuk jadual besar */
+                font-family: "Times New Roman", serif; /* Font rasmi dokumen */
+            }
+            
+            .container {
+                box-shadow: none;
+                border: 0;
+                width: 100% !important;
+                max-width: none !important;
+                padding: 0;
+                margin: 0;
+            }
+            
+            /* Sembunyikan elemen yang tidak perlu dalam laporan */
+            .controls-container, 
+            .nav-link, 
+            #pagination-controls, 
+            footer,
+            h2 { /* Sembunyikan tajuk asal, guna tajuk print */
+                display: none !important;
+            }
+            
+            /* Paparkan Tajuk Laporan Rasmi */
+            .print-header {
+                display: block;
+                text-align: center;
+                margin-bottom: 20px;
+            }
+            .print-header h1 {
+                font-size: 16pt;
+                margin: 0;
+                text-transform: uppercase;
+                color: #000;
+            }
+            .print-header p {
+                font-size: 10pt;
+                margin: 5px 0 0 0;
+                color: #555;
+            }
+
+            #rekod-container {
+                overflow: visible !important; /* Matikan scroll bar */
+                display: block;
+            }
+            
+            table {
+                width: 100%;
+                border-collapse: collapse; /* Cantumkan border jadual */
+                border: 2px solid #000; /* Border luar tebal */
+                min-width: 0;
+                margin-top: 0;
+                table-layout: auto;
+            }
+            
+            thead {
+                display: table-header-group; /* Ulang header di setiap halaman baru */
+            }
+            
+            tr {
+                page-break-inside: avoid; /* Elak baris terputus di tengah */
+            }
+            
+            th {
+                background-color: #dcdcdc !important; /* Warna kelabu cair untuk header */
+                color: #000;
+                border: 1px solid #000;
+                padding: 8px;
+                font-weight: bold;
+                text-align: center;
+                font-size: 9pt;
+            }
+            
+            td {
+                border: 1px solid #000; /* Border hitam penuh untuk setiap sel */
+                padding: 6px;
+                color: #000;
+                white-space: normal !important; /* Benarkan teks wrap */
+                vertical-align: top;
+            }
+            
+            /* Penyesuaian khas untuk cetakan */
+            .status-badge {
+                border: 1px solid #000;
+                background: none !important;
+                color: #000 !important;
+                padding: 2px;
+                font-weight: normal;
+            }
+            
+            .duration-badge {
+                background: none !important;
+                border: 1px solid #555;
+            }
         }
     </style>
 </head>
 <body>
 
     <div class="container">
+        <div class="print-header">
+            <h1>Laporan Rekod Pergerakan Kakitangan</h1>
+            <p>Suruhanjaya Koperasi Malaysia Negeri Sabah</p>
+            <p>Dicetak pada: <span id="tarikh-cetak"></span></p>
+        </div>
+
         <h2>Dashboard Rekod Pergerakan Staf</h2>
         <div class="controls-container">
             <div class="filter-group">
-                <label for="filter-tarikh">Tarikh Hantar Rekod:</label>
+                <label for="filter-tarikh">Tarikh Hantar:</label>
                 <input type="date" id="filter-tarikh">
+                
                 <label for="filter-nama">Saring Nama:</label>
                 <input type="text" id="filter-nama" placeholder="Taip nama staf...">
-                <label for="filter-wilayah">Saring Wilayah:</label>
+                
+                <label for="filter-jenis">Jenis Pergerakan:</label>
+                <select id="filter-jenis">
+                    <option value="">Semua Jenis</option>
+                    <option value="UR - Urusan Rasmi/Koperasi">UR - Urusan Rasmi</option>
+                    <option value="Kursus/Latihan">Kursus/Latihan</option>
+                    <option value="Bekerja Dari Rumah">Bekerja Dari Rumah</option>
+                    <option value="CR - Cuti Rehat">CR - Cuti Rehat</option>
+                    <option value="MC - Cuti Sakit">MC - Cuti Sakit</option>
+                    <option value="CG - Cuti Gantian">CG - Cuti Gantian</option>
+                    <option value="CK - Cuti Kuarantin">CK - Cuti Kuarantin</option>
+                    <option value="CB - Cuti Bersalin">CB - Cuti Bersalin</option>
+                    <option value="Kebenaran 4 Jam / HRMIS">Kebenaran 4 Jam</option>
+                </select>
+
+                <label for="filter-wilayah">Wilayah:</label>
                 <select id="filter-wilayah">
                     <option value="">Semua Wilayah</option>
                     <option value="SKM Negeri Sabah">SKM Negeri Sabah</option>
@@ -134,7 +255,10 @@
         const loadingElement = document.getElementById('loading');
         const filterTarikhInput = document.getElementById('filter-tarikh');
         const filterNamaInput = document.getElementById('filter-nama');
+        // ## DAPATKAN ELEMEN FILTER BARU ##
+        const filterJenisInput = document.getElementById('filter-jenis');
         const filterWilayahInput = document.getElementById('filter-wilayah');
+        
         const resetButton = document.getElementById('reset-button');
         const printButton = document.getElementById('print-button');
         const prevButton = document.getElementById('prev-button');
@@ -145,6 +269,9 @@
         let rekodYangDitapis = [];
         let currentPage = 1;
         const recordsPerPage = 50;
+
+        // Set tarikh cetakan
+        document.getElementById('tarikh-cetak').innerText = new Date().toLocaleDateString('ms-MY', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
 
         function parseTimestampToUTCMillis(timestampStr) {
             if (!timestampStr || typeof timestampStr !== 'string') return null;
@@ -186,26 +313,19 @@
              return `${year}-${month}-${day}`;
         }
 
-        // ## FUNGSI BARU: Tukar string masa kepada minit untuk pengiraan ##
         function parseToMinutes(timeStr) {
             if (!timeStr) return null;
-            
-            // Format 14:30
             if (timeStr.includes(':') && !timeStr.toLowerCase().includes('m')) {
                 const [hours, minutes] = timeStr.split(':').map(Number);
                 return (hours * 60) + minutes;
             }
-            
-            // Format 2:30 PM (Google Sheet format)
             const match = timeStr.match(/(\d+):(\d+)(?:\s*)(AM|PM)/i);
             if (match) {
                 let hours = parseInt(match[1]);
                 const minutes = parseInt(match[2]);
                 const ampm = match[3].toUpperCase();
-                
                 if (ampm === 'PM' && hours !== 12) hours += 12;
                 if (ampm === 'AM' && hours === 12) hours = 0;
-                
                 return (hours * 60) + minutes;
             }
             return null;
@@ -214,30 +334,22 @@
         function kiraTempoh(masaMula, masaTamat) {
             const startMin = parseToMinutes(masaMula);
             const endMin = parseToMinutes(masaTamat);
-            
             if (startMin === null || endMin === null) return '';
-            
             let diff = endMin - startMin;
-            if (diff < 0) diff += 1440; // Handle kes lintas tengah malam (pilihan)
-            
+            if (diff < 0) diff += 1440;
             const hours = Math.floor(diff / 60);
             const minutes = diff % 60;
-            
             let tempoh = '';
             if (hours > 0) tempoh += `${hours} jam `;
             if (minutes > 0) tempoh += `${minutes} minit`;
-            
             return tempoh.trim() || '0 minit';
         }
 
         function formatMasa(masa) {
             if (!masa) return '';
-            // Jika format sudah ada AM/PM, pulangkan sahaja
             if (masa.toLowerCase().includes('am') || masa.toLowerCase().includes('pm')) return masa;
-
             const [jam, minit] = masa.split(':');
             if (!jam) return masa;
-            
             let jamInt = parseInt(jam);
             const ampm = jamInt >= 12 ? 'PM' : 'AM';
             jamInt = jamInt % 12;
@@ -329,13 +441,11 @@
 
                         let paparanWaktu = '-';
                         const jenis = (rekod.jenis_pergerakan || '').toUpperCase();
-                        // Cek jika Cuti (CR, MC, Cuti, dll)
                         const isCuti = jenis.includes("CUTI") || jenis.includes("CR -") || jenis.includes("MC -");
 
                         if (isCuti) {
                             paparanWaktu = '<span style="color:#888; font-style:italic;">Sepenuh Hari</span>';
                         } else if (rekod.masa_mula && rekod.masa_tamat) {
-                            // Kira tempoh menggunakan fungsi baru
                             const tempoh = kiraTempoh(rekod.masa_mula, rekod.masa_tamat);
                             paparanWaktu = `
                                 <div class="time-display">${formatMasa(rekod.masa_mula)} - ${formatMasa(rekod.masa_tamat)}</div>
@@ -372,15 +482,19 @@
             nextButton.disabled = (currentPage === totalPages || totalPages === 0);
         }
 
+        // ## LOGIK SARINGAN DIKEMAS KINI ##
         function saringRekod() {
             const tarikhDipilih = filterTarikhInput.value;
             const namaDimasukkan = filterNamaInput.value.toLowerCase();
+            const jenisDipilih = filterJenisInput.value; // Ambil nilai filter jenis
             const wilayahDipilih = filterWilayahInput.value;
+            
             let rekodDisaring = semuaRekod;
+
             if (tarikhDipilih) {
                 rekodDisaring = rekodDisaring.filter(rekod => {
                     const tarikhHantar = normalizeDateFromTimestamp(rekod.timestamp);
-                    return tarikhHantar === tarikhDipilih;
+                    return tarikhHantar && tarikhHantar === tarikhDipilih;
                 });
             }
             if (namaDimasukkan) {
@@ -388,9 +502,14 @@
                     rekod.nama_staf && rekod.nama_staf.toLowerCase().includes(namaDimasukkan)
                 );
             }
+            // Filter mengikut jenis pergerakan
+            if (jenisDipilih) {
+                rekodDisaring = rekodDisaring.filter(rekod => rekod.jenis_pergerakan === jenisDipilih);
+            }
             if (wilayahDipilih) {
                 rekodDisaring = rekodDisaring.filter(rekod => rekod.tempat_bertugas === wilayahDipilih);
             }
+            
             rekodYangDitapis = rekodDisaring;
             currentPage = 1;
             paparkanRekod();
@@ -399,10 +518,13 @@
         document.addEventListener('DOMContentLoaded', muatNaikRekod);
         filterTarikhInput.addEventListener('change', saringRekod);
         filterNamaInput.addEventListener('input', saringRekod);
+        filterJenisInput.addEventListener('change', saringRekod); // Event listener baru
         filterWilayahInput.addEventListener('change', saringRekod);
+
         resetButton.addEventListener('click', () => {
             filterTarikhInput.value = '';
             filterNamaInput.value = '';
+            filterJenisInput.value = '';
             filterWilayahInput.value = '';
             rekodYangDitapis = semuaRekod;
             currentPage = 1;
@@ -414,18 +536,11 @@
         });
         
         prevButton.addEventListener('click', () => {
-            if (currentPage > 1) {
-                currentPage--;
-                paparkanRekod();
-            }
+            if (currentPage > 1) { currentPage--; paparkanRekod(); }
         });
-        
         nextButton.addEventListener('click', () => {
             const totalPages = Math.ceil(rekodYangDitapis.length / recordsPerPage);
-            if (currentPage < totalPages) {
-                currentPage++;
-                paparkanRekod();
-            }
+            if (currentPage < totalPages) { currentPage++; paparkanRekod(); }
         });
     </script>
 </body>
