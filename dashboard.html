@@ -50,6 +50,7 @@
             border-radius: 4px; 
             font-size: 0.85em;
             margin-top: 4px;
+            font-weight: bold;
         }
 
         @media (min-width: 768px) {
@@ -145,7 +146,6 @@
         let currentPage = 1;
         const recordsPerPage = 50;
 
-        // Fungsi parse tarikh
         function parseTimestampToUTCMillis(timestampStr) {
             if (!timestampStr || typeof timestampStr !== 'string') return null;
             const parts = timestampStr.split(',');
@@ -186,38 +186,62 @@
              return `${year}-${month}-${day}`;
         }
 
-        // ## FUNGSI BARU: Mengira Tempoh Masa ##
-        function kiraTempoh(masaMula, masaTamat) {
-            if (!masaMula || !masaTamat) return '';
+        // ## FUNGSI BARU: Tukar string masa kepada minit untuk pengiraan ##
+        function parseToMinutes(timeStr) {
+            if (!timeStr) return null;
             
-            const [jamMula, minitMula] = masaMula.split(':').map(Number);
-            const [jamTamat, minitTamat] = masaTamat.split(':').map(Number);
-            
-            let bezaJam = jamTamat - jamMula;
-            let bezaMinit = minitTamat - minitMula;
-            
-            if (bezaMinit < 0) {
-                bezaJam--;
-                bezaMinit += 60;
+            // Format 14:30
+            if (timeStr.includes(':') && !timeStr.toLowerCase().includes('m')) {
+                const [hours, minutes] = timeStr.split(':').map(Number);
+                return (hours * 60) + minutes;
             }
             
-            if (bezaJam < 0) return ''; // Masa tidak valid (cth: tamat sebelum mula)
+            // Format 2:30 PM (Google Sheet format)
+            const match = timeStr.match(/(\d+):(\d+)(?:\s*)(AM|PM)/i);
+            if (match) {
+                let hours = parseInt(match[1]);
+                const minutes = parseInt(match[2]);
+                const ampm = match[3].toUpperCase();
+                
+                if (ampm === 'PM' && hours !== 12) hours += 12;
+                if (ampm === 'AM' && hours === 12) hours = 0;
+                
+                return (hours * 60) + minutes;
+            }
+            return null;
+        }
+
+        function kiraTempoh(masaMula, masaTamat) {
+            const startMin = parseToMinutes(masaMula);
+            const endMin = parseToMinutes(masaTamat);
+            
+            if (startMin === null || endMin === null) return '';
+            
+            let diff = endMin - startMin;
+            if (diff < 0) diff += 1440; // Handle kes lintas tengah malam (pilihan)
+            
+            const hours = Math.floor(diff / 60);
+            const minutes = diff % 60;
             
             let tempoh = '';
-            if (bezaJam > 0) tempoh += `${bezaJam} jam `;
-            if (bezaMinit > 0) tempoh += `${bezaMinit} minit`;
+            if (hours > 0) tempoh += `${hours} jam `;
+            if (minutes > 0) tempoh += `${minutes} minit`;
             
             return tempoh.trim() || '0 minit';
         }
 
-        // ## FUNGSI BARU: Format Masa (13:00 -> 1:00 PM) ##
         function formatMasa(masa) {
             if (!masa) return '';
+            // Jika format sudah ada AM/PM, pulangkan sahaja
+            if (masa.toLowerCase().includes('am') || masa.toLowerCase().includes('pm')) return masa;
+
             const [jam, minit] = masa.split(':');
+            if (!jam) return masa;
+            
             let jamInt = parseInt(jam);
             const ampm = jamInt >= 12 ? 'PM' : 'AM';
             jamInt = jamInt % 12;
-            jamInt = jamInt ? jamInt : 12; // Jam 0 jadi 12
+            jamInt = jamInt ? jamInt : 12; 
             return `${jamInt}:${minit} ${ampm}`;
         }
 
@@ -303,21 +327,21 @@
                              if (statusPaparan === 'Dilihat') statusClass = 'status-dilihat';
                         }
 
-                        // ## LOGIK PAPARAN MASA ##
                         let paparanWaktu = '-';
-                        const jenis = rekod.jenis_pergerakan || '';
-                        const isCuti = jenis.includes("Cuti") || jenis.includes("CR") || jenis.includes("MC");
+                        const jenis = (rekod.jenis_pergerakan || '').toUpperCase();
+                        // Cek jika Cuti (CR, MC, Cuti, dll)
+                        const isCuti = jenis.includes("CUTI") || jenis.includes("CR -") || jenis.includes("MC -");
 
                         if (isCuti) {
                             paparanWaktu = '<span style="color:#888; font-style:italic;">Sepenuh Hari</span>';
                         } else if (rekod.masa_mula && rekod.masa_tamat) {
+                            // Kira tempoh menggunakan fungsi baru
                             const tempoh = kiraTempoh(rekod.masa_mula, rekod.masa_tamat);
                             paparanWaktu = `
                                 <div class="time-display">${formatMasa(rekod.masa_mula)} - ${formatMasa(rekod.masa_tamat)}</div>
                                 <div class="duration-badge">${tempoh}</div>
                             `;
                         } else if (rekod.masa_pergi) {
-                             // Fallback untuk data lama yang guna 'masa_pergi'
                              paparanWaktu = formatMasa(rekod.masa_pergi);
                         }
 
@@ -356,7 +380,7 @@
             if (tarikhDipilih) {
                 rekodDisaring = rekodDisaring.filter(rekod => {
                     const tarikhHantar = normalizeDateFromTimestamp(rekod.timestamp);
-                    return tarikhHantar && tarikhHantar === tarikhDipilih;
+                    return tarikhHantar === tarikhDipilih;
                 });
             }
             if (namaDimasukkan) {
