@@ -9,7 +9,7 @@
             font-family: Arial, sans-serif;
             background-color: #f4f4f9;
             display: flex;
-            flex-direction: column; /* Susun untuk footer */
+            flex-direction: column;
             align-items: center;
             padding: 20px;
             min-height: 100vh;
@@ -23,22 +23,24 @@
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
             width: 100%;
             max-width: 500px;
-            flex-grow: 1; /* Benarkan container membesar */
+            flex-grow: 1;
             box-sizing: border-box;
         }
         
-        /* ## GAYA BARU: UNTUK LOGO ## */
         #logo-skm {
             display: block;
             margin: 0 auto 15px auto;
-            max-width: 180px; /* Saiz logo */
+            max-width: 180px;
         }
         
         h2 { text-align: center; color: #333; margin-top: 0; margin-bottom: 5px; }
         #live-clock { text-align: center; color: #555; font-size: 0.9em; margin-bottom: 25px; }
         .form-group { margin-bottom: 15px; }
-        .date-group { display: flex; gap: 10px; }
-        .date-group .form-group { width: 50%; }
+        
+        /* CSS untuk susun dua input bersebelahan (Tarikh & Masa) */
+        .double-group { display: flex; gap: 10px; }
+        .double-group .form-group { width: 50%; }
+
         label { display: block; margin-bottom: 5px; font-weight: bold; }
         input, select, textarea {
             width: 100%;
@@ -67,7 +69,6 @@
         #success-message button:hover { background-color: #218838; }
         .nav-link { display: block; text-align: center; margin-top: 20px; color: #0056b3; font-weight: 600; }
         
-        /* ## GAYA BARU: UNTUK FOOTER ## */
         footer {
             text-align: center;
             padding: 20px;
@@ -84,7 +85,7 @@
             
             <img src="logo-skm.png" alt="Logo SKM" id="logo-skm">
             
-            <h2>Sistem Pergerakan Kakitangan SKM Negeri Sabah</h2>
+            <h2>Sistem Pergerakan Kakitangan SKM</h2>
             <p id="live-clock"></p>
             
             <form id="pergerakan-form">
@@ -111,7 +112,19 @@
                     <label for="destinasi">Destinasi/Lokasi:</label>
                     <input type="text" id="destinasi" name="destinasi" required>
                 </div>
-                <div class="date-group">
+
+                <div class="double-group">
+                    <div class="form-group">
+                        <label for="masa_mula">Waktu Mula:</label>
+                        <input type="time" id="masa_mula" name="masa_mula" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="masa_tamat">Waktu Tamat:</label>
+                        <input type="time" id="masa_tamat" name="masa_tamat" required>
+                    </div>
+                </div>
+
+                <div class="double-group">
                     <div class="form-group">
                         <label for="tarikh_mula">Tarikh Mula:</label>
                         <input type="date" id="tarikh_mula" name="tarikh_mula" required>
@@ -121,6 +134,7 @@
                         <input type="date" id="tarikh_akhir" name="tarikh_akhir" required>
                     </div>
                 </div>
+                
                 <div class="form-group">
                     <label for="tempat_bertugas">Tempat Bertugas:</label>
                     <select id="tempat_bertugas" name="tempat_bertugas" required>
@@ -133,7 +147,6 @@
                         <option value="SKM Wilayah Keningau">SKM Wilayah Keningau</option>
                         <option value="SKM Wilayah Ranau">SKM Wilayah Ranau</option>
                         <option value="SKM Wilayah Kota Marudu">SKM Wilayah Kota Marudu</option>
-                        <option value="SKM Wilayah Kudat">SKM Wilayah Kudat</option>
                         <option value="SKM Wilayah Sandakan">SKM Wilayah Sandakan</option>
                         <option value="SKM Wilayah Lahad Datu">SKM Wilayah Lahad Datu</option>
                         <option value="SKM Wilayah Tawau">SKM Wilayah Tawau</option>
@@ -155,7 +168,7 @@
     </div>
     
     <footer>
-         <p>Hak Cipta Terpelihara &copy; Harriet Justine, Unit Pengurusan dan Teknologi Maklumat. Inovasi Untuk Semua. | <a href="bantuan.html">Panduan Pengguna</a></p>
+        <p>Hak Cipta Terpelihara &copy; Harriet Justine, Unit Pengurusan dan Teknologi Maklumat. Inovasi Untuk Semua. | <a href="bantuan.html">Panduan Pengguna</a></p>
     </footer>
 
     <script>
