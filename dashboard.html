@@ -6,7 +6,7 @@
     <title>Dashboard Rekod Pergerakan - SKM</title>
     
     <style>
-        /* Gaya CSS anda dikekalkan seperti sebelum ini */
+        /* Gaya CSS dikekalkan */
         body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; background-color: #f4f7f6; margin: 0; padding: 10px; display: flex; flex-direction: column; min-height: 100vh; }
         .container { max-width: 1400px; margin: auto; background-color: #ffffff; padding: 20px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05); width: 100%; flex-grow: 1; box-sizing: border-box; overflow: hidden; }
         h2 { text-align: center; color: #222; border-bottom: 2px solid #e0e0e0; padding-bottom: 15px; margin-bottom: 20px; font-size: 1.5em; }
@@ -41,6 +41,17 @@
         #page-info { font-weight: 600; color: #333; font-size: 14px; }
         footer { text-align: center; padding: 20px 10px; margin-top: 30px; color: #888; font-size: 12px; }
         
+        .time-display { font-size: 0.9em; color: #555; }
+        .duration-badge { 
+            display: inline-block; 
+            padding: 2px 6px; 
+            background-color: #e2e3e5; 
+            color: #383d41; 
+            border-radius: 4px; 
+            font-size: 0.85em;
+            margin-top: 4px;
+        }
+
         @media (min-width: 768px) {
              body { padding: 20px; }
              .container { padding: 30px; }
@@ -113,13 +124,11 @@
     </div>
     
     <footer>
-        <p>Hak Cipta Terpelihara &copy; Harriet Justine, Unit Pengurusan dan Teknologi Maklumat. Inovasi Untuk Semua. | <a href="bantuan.html">Panduan Pengguna</a></p>
+        <p>Hak Cipta Terpelihara &copy; Harriet Justine, Unit Pengurusan dan Teknologi Maklumat. Inovasi Untuk Semua.</p>
     </footer>
-    
+
     <script>
-        // PASTIKAN URL SERVER BETUL
         const API_SERVER_URL = 'https://projek-skm-server.onrender.com';
-        
         const rekodContainer = document.getElementById('rekod-container');
         const loadingElement = document.getElementById('loading');
         const filterTarikhInput = document.getElementById('filter-tarikh');
@@ -136,6 +145,7 @@
         let currentPage = 1;
         const recordsPerPage = 50;
 
+        // Fungsi parse tarikh
         function parseTimestampToUTCMillis(timestampStr) {
             if (!timestampStr || typeof timestampStr !== 'string') return null;
             const parts = timestampStr.split(',');
@@ -163,7 +173,6 @@
                  const dateObj = new Date(timestampStr);
                  if (!isNaN(dateObj.getTime())) { return dateObj.getTime(); }
             } catch (e) { /* Abaikan */ }
-             console.warn("Gagal parse timestamp:", timestampStr);
             return null;
         }
         
@@ -177,6 +186,41 @@
              return `${year}-${month}-${day}`;
         }
 
+        // ## FUNGSI BARU: Mengira Tempoh Masa ##
+        function kiraTempoh(masaMula, masaTamat) {
+            if (!masaMula || !masaTamat) return '';
+            
+            const [jamMula, minitMula] = masaMula.split(':').map(Number);
+            const [jamTamat, minitTamat] = masaTamat.split(':').map(Number);
+            
+            let bezaJam = jamTamat - jamMula;
+            let bezaMinit = minitTamat - minitMula;
+            
+            if (bezaMinit < 0) {
+                bezaJam--;
+                bezaMinit += 60;
+            }
+            
+            if (bezaJam < 0) return ''; // Masa tidak valid (cth: tamat sebelum mula)
+            
+            let tempoh = '';
+            if (bezaJam > 0) tempoh += `${bezaJam} jam `;
+            if (bezaMinit > 0) tempoh += `${bezaMinit} minit`;
+            
+            return tempoh.trim() || '0 minit';
+        }
+
+        // ## FUNGSI BARU: Format Masa (13:00 -> 1:00 PM) ##
+        function formatMasa(masa) {
+            if (!masa) return '';
+            const [jam, minit] = masa.split(':');
+            let jamInt = parseInt(jam);
+            const ampm = jamInt >= 12 ? 'PM' : 'AM';
+            jamInt = jamInt % 12;
+            jamInt = jamInt ? jamInt : 12; // Jam 0 jadi 12
+            return `${jamInt}:${minit} ${ampm}`;
+        }
+
         async function muatNaikRekod() {
              loadingElement.style.display = 'block';
              rekodContainer.innerHTML = '<p id="loading">Memuat turun rekod...</p>'; 
@@ -185,19 +229,15 @@
                 const response = await fetch(`${API_SERVER_URL}/get-rekod`, { cache: 'no-cache' }); 
                 if (!response.ok) throw new Error(`Server Error: ${response.statusText}`);
                 let data = await response.json();
-                 if (!Array.isArray(data)) {
-                     console.error("Data diterima bukan array:", data);
-                     data = []; 
-                 }
+                 if (!Array.isArray(data)) { console.error("Data bukan array:", data); data = []; }
                 
-                // ## SUSUNAN DIPASTIKAN BETUL DI SINI ##
                 data.sort((a, b) => {
                      const timeA = parseTimestampToUTCMillis(a.timestamp);
                      const timeB = parseTimestampToUTCMillis(b.timestamp);
                      if (timeA === null && timeB === null) return 0; 
                      if (timeA === null) return 1;          
                      if (timeB === null) return -1;          
-                     return timeB - timeA; // Susun yang terbaru dahulu (milisaat B tolak milisaat A)
+                     return timeB - timeA; 
                  });
                  
                 semuaRekod = data;
@@ -213,7 +253,7 @@
 
         function paparkanRekod() {
             loadingElement.style.display = 'none';
-            rekodContainer.innerHTML = ''; 
+            rekodContainer.innerHTML = '';
 
             if (!rekodYangDitapis || rekodYangDitapis.length === 0) {
                 rekodContainer.innerHTML = '<p style="text-align: center;">Tiada rekod ditemui.</p>';
@@ -237,6 +277,7 @@
                         <th class="col-nama">Nama Staf</th>
                         <th class="col-jenis">Jenis Pergerakan</th>
                         <th class="col-destinasi">Destinasi</th>
+                        <th>Waktu / Tempoh</th> 
                         <th class="col-tarikh">Tarikh Mula</th>
                         <th class="col-tarikh">Tarikh Akhir</th>
                         <th class="col-tempat">Tempat Bertugas</th>
@@ -248,22 +289,38 @@
                     ${dataUntukPaparan.map((rekod, index) => {
                         const recordMillis = parseTimestampToUTCMillis(rekod.timestamp);
                         const hoursDiff = recordMillis !== null ? (nowMillis - recordMillis) / (1000 * 60 * 60) : Infinity; 
+                        
                         let statusPaparan = rekod.status || 'N/A';
                         let statusClass = 'status-default';
-                        
-                        // ## LOGIK STATUS DIPASTIKAN BETUL DI SINI ##
                         if (rekod.status === 'BARU') {
                             if (hoursDiff > 24) { 
                                 statusPaparan = 'Dilihat';
                                 statusClass = 'status-dilihat';
                             } else {
-                                statusClass = 'status-baru'; // Kekal 'BARU'
+                                statusClass = 'status-baru'; 
                             }
                         } else {
                              if (statusPaparan === 'Dilihat') statusClass = 'status-dilihat';
-                             // Anda boleh tambah logik untuk status lain di sini jika perlu
                         }
-                        
+
+                        // ## LOGIK PAPARAN MASA ##
+                        let paparanWaktu = '-';
+                        const jenis = rekod.jenis_pergerakan || '';
+                        const isCuti = jenis.includes("Cuti") || jenis.includes("CR") || jenis.includes("MC");
+
+                        if (isCuti) {
+                            paparanWaktu = '<span style="color:#888; font-style:italic;">Sepenuh Hari</span>';
+                        } else if (rekod.masa_mula && rekod.masa_tamat) {
+                            const tempoh = kiraTempoh(rekod.masa_mula, rekod.masa_tamat);
+                            paparanWaktu = `
+                                <div class="time-display">${formatMasa(rekod.masa_mula)} - ${formatMasa(rekod.masa_tamat)}</div>
+                                <div class="duration-badge">${tempoh}</div>
+                            `;
+                        } else if (rekod.masa_pergi) {
+                             // Fallback untuk data lama yang guna 'masa_pergi'
+                             paparanWaktu = formatMasa(rekod.masa_pergi);
+                        }
+
                         const escapeHTML = (str) => str ? String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#039;') : '';
 
                         return `
@@ -273,6 +330,7 @@
                                 <td class="col-nama">${escapeHTML(rekod.nama_staf)}</td>
                                 <td class="col-jenis">${escapeHTML(rekod.jenis_pergerakan)}</td>
                                 <td class="col-destinasi">${escapeHTML(rekod.destinasi)}</td>
+                                <td>${paparanWaktu}</td>
                                 <td class="col-tarikh">${escapeHTML(rekod.tarikh_mula)}</td>
                                 <td class="col-tarikh">${escapeHTML(rekod.tarikh_akhir)}</td>
                                 <td class="col-tempat">${escapeHTML(rekod.tempat_bertugas)}</td>
@@ -291,21 +349,60 @@
         }
 
         function saringRekod() {
-             const tarikhDipilih = filterTarikhInput.value; const namaDimasukkan = filterNamaInput.value.toLowerCase(); const wilayahDipilih = filterWilayahInput.value; let rekodDisaring = semuaRekod;
-             if (tarikhDipilih) { rekodDisaring = rekodDisaring.filter(rekod => { const tarikhHantar = normalizeDateFromTimestamp(rekod.timestamp); return tarikhHantar && tarikhHantar === tarikhDipilih; }); }
-             if (namaDimasukkan) { rekodDisaring = rekodDisaring.filter(rekod => rekod.nama_staf && rekod.nama_staf.toLowerCase().includes(namaDimasukkan) ); }
-             if (wilayahDipilih) { rekodDisaring = rekodDisaring.filter(rekod => rekod.tempat_bertugas === wilayahDipilih); }
-             rekodYangDitapis = rekodDisaring; currentPage = 1; paparkanRekod();
+            const tarikhDipilih = filterTarikhInput.value;
+            const namaDimasukkan = filterNamaInput.value.toLowerCase();
+            const wilayahDipilih = filterWilayahInput.value;
+            let rekodDisaring = semuaRekod;
+            if (tarikhDipilih) {
+                rekodDisaring = rekodDisaring.filter(rekod => {
+                    const tarikhHantar = normalizeDateFromTimestamp(rekod.timestamp);
+                    return tarikhHantar && tarikhHantar === tarikhDipilih;
+                });
+            }
+            if (namaDimasukkan) {
+                rekodDisaring = rekodDisaring.filter(rekod => 
+                    rekod.nama_staf && rekod.nama_staf.toLowerCase().includes(namaDimasukkan)
+                );
+            }
+            if (wilayahDipilih) {
+                rekodDisaring = rekodDisaring.filter(rekod => rekod.tempat_bertugas === wilayahDipilih);
+            }
+            rekodYangDitapis = rekodDisaring;
+            currentPage = 1;
+            paparkanRekod();
         }
 
         document.addEventListener('DOMContentLoaded', muatNaikRekod);
         filterTarikhInput.addEventListener('change', saringRekod);
         filterNamaInput.addEventListener('input', saringRekod);
         filterWilayahInput.addEventListener('change', saringRekod);
-        resetButton.addEventListener('click', () => { filterTarikhInput.value = ''; filterNamaInput.value = ''; filterWilayahInput.value = ''; rekodYangDitapis = semuaRekod; currentPage = 1; paparkanRekod(); });
-        printButton.addEventListener('click', () => { window.print(); });
-        prevButton.addEventListener('click', () => { if (currentPage > 1) { currentPage--; paparkanRekod(); } });
-        nextButton.addEventListener('click', () => { const totalPages = Math.ceil(rekodYangDitapis.length / recordsPerPage); if (currentPage < totalPages) { currentPage++; paparkanRekod(); } });
+        resetButton.addEventListener('click', () => {
+            filterTarikhInput.value = '';
+            filterNamaInput.value = '';
+            filterWilayahInput.value = '';
+            rekodYangDitapis = semuaRekod;
+            currentPage = 1;
+            paparkanRekod();
+        });
+        
+        printButton.addEventListener('click', () => {
+            window.print();
+        });
+        
+        prevButton.addEventListener('click', () => {
+            if (currentPage > 1) {
+                currentPage--;
+                paparkanRekod();
+            }
+        });
+        
+        nextButton.addEventListener('click', () => {
+            const totalPages = Math.ceil(rekodYangDitapis.length / recordsPerPage);
+            if (currentPage < totalPages) {
+                currentPage++;
+                paparkanRekod();
+            }
+        });
     </script>
 </body>
 </html>
