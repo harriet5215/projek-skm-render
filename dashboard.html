@@ -4,23 +4,40 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard Rekod Pergerakan - SKM</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     
     <style>
         /* Gaya Asas Skrin */
         body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; background-color: #f4f7f6; margin: 0; padding: 10px; display: flex; flex-direction: column; min-height: 100vh; }
         .container { max-width: 1400px; margin: auto; background-color: #ffffff; padding: 20px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05); width: 100%; flex-grow: 1; box-sizing: border-box; overflow: hidden; }
         
-        /* Tajuk Skrin */
         h2 { text-align: center; color: #222; border-bottom: 2px solid #e0e0e0; padding-bottom: 15px; margin-bottom: 20px; font-size: 1.5em; }
-        
-        /* Tajuk Khas Cetakan (Disembunyikan di Skrin) */
         .print-header { display: none; }
+
+        /* ## GAYA UNTUK KAWASAN ANALITIK ## */
+        .analytics-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            margin-bottom: 30px;
+            justify-content: center;
+        }
+        .chart-box {
+            background: #fff;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 15px;
+            flex: 1;
+            min-width: 300px;
+            max-width: 600px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+        .chart-box h3 { text-align: center; margin-top: 0; color: #555; font-size: 1em; }
 
         .controls-container { background-color: #f8f9fa; padding: 15px; border-radius: 8px; margin-bottom: 20px; display: flex; flex-direction: column; gap: 15px; }
         .filter-group { display: flex; flex-direction: column; gap: 10px; width: 100%; }
         .filter-group label { font-weight: 600; color: #333; margin-bottom: 3px; }
         
-        /* Input Styles */
         input[type="date"], input[type="text"], select, button { padding: 10px 12px; border-radius: 6px; border: 1px solid #ced4da; font-size: 14px; width: 100%; box-sizing: border-box; }
          button { width: auto; padding: 10px 15px; cursor: pointer; background-color: #0056b3; color: white; border-color: #0056b3; font-weight: 600; transition: background-color 0.2s ease;}
          button:hover { background-color: #004494; }
@@ -30,7 +47,6 @@
         #print-button { background-color: #28a745; border-color: #28a745; }
         #print-button:hover { background-color: #218838; }
         
-        /* Table Styles */
         #rekod-container { width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; }
         table { width: 100%; min-width: 900px; border-collapse: separate; border-spacing: 0; margin-top: 20px; border: 1px solid #dee2e6; border-radius: 8px; }
         th, td { padding: 12px 15px; text-align: left; border-bottom: 1px solid #dee2e6; vertical-align: middle; white-space: nowrap; }
@@ -40,13 +56,11 @@
         tbody tr:last-child td { border-bottom: 0; }
         tbody tr:hover { background-color: #f8f9fa; }
         
-        /* Status Badges */
         .status-badge { padding: 5px 10px; border-radius: 15px; font-weight: 600; font-size: 11px; display: inline-block; text-align: center; min-width: 50px;}
         .status-baru { background-color: #fff0c2; color: #7a5c00; }
         .status-dilihat { background-color: #e9ecef; color: #495057; }
         .status-default { background-color: #d1ecf1; color: #0c5c60; }
         
-        /* UI Elements */
         .nav-link { display: block; text-align: center; margin-top: 25px; color: #0056b3; font-weight: 600; }
         #loading { text-align: center; padding: 50px; font-size: 1.2em; color: #888; }
         #pagination-controls { display: flex; justify-content: center; align-items: center; gap: 10px; margin-top: 25px; }
@@ -58,7 +72,6 @@
         .time-display { font-size: 0.9em; color: #555; }
         .duration-badge { display: inline-block; padding: 2px 6px; background-color: #e2e3e5; color: #383d41; border-radius: 4px; font-size: 0.85em; margin-top: 4px; font-weight: bold; }
 
-        /* Desktop View */
         @media (min-width: 768px) {
              body { padding: 20px; }
              .container { padding: 30px; }
@@ -74,109 +87,22 @@
              #pagination-controls button { width: 120px; }
          }
 
-        /* ## CETAKAN A4 YANG CANTIK ## */
         @media print {
-            @page {
-                size: landscape; /* Paksa orientasi Melintang */
-                margin: 1cm; /* Margin kertas */
-            }
-
-            body {
-                background-color: #fff;
-                padding: 0;
-                font-size: 9pt; /* Saiz font optimum untuk jadual besar */
-                font-family: "Times New Roman", serif; /* Font rasmi dokumen */
-            }
-            
-            .container {
-                box-shadow: none;
-                border: 0;
-                width: 100% !important;
-                max-width: none !important;
-                padding: 0;
-                margin: 0;
-            }
-            
-            /* Sembunyikan elemen yang tidak perlu dalam laporan */
-            .controls-container, 
-            .nav-link, 
-            #pagination-controls, 
-            footer,
-            h2 { /* Sembunyikan tajuk asal, guna tajuk print */
-                display: none !important;
-            }
-            
-            /* Paparkan Tajuk Laporan Rasmi */
-            .print-header {
-                display: block;
-                text-align: center;
-                margin-bottom: 20px;
-            }
-            .print-header h1 {
-                font-size: 16pt;
-                margin: 0;
-                text-transform: uppercase;
-                color: #000;
-            }
-            .print-header p {
-                font-size: 10pt;
-                margin: 5px 0 0 0;
-                color: #555;
-            }
-
-            #rekod-container {
-                overflow: visible !important; /* Matikan scroll bar */
-                display: block;
-            }
-            
-            table {
-                width: 100%;
-                border-collapse: collapse; /* Cantumkan border jadual */
-                border: 2px solid #000; /* Border luar tebal */
-                min-width: 0;
-                margin-top: 0;
-                table-layout: auto;
-            }
-            
-            thead {
-                display: table-header-group; /* Ulang header di setiap halaman baru */
-            }
-            
-            tr {
-                page-break-inside: avoid; /* Elak baris terputus di tengah */
-            }
-            
-            th {
-                background-color: #dcdcdc !important; /* Warna kelabu cair untuk header */
-                color: #000;
-                border: 1px solid #000;
-                padding: 8px;
-                font-weight: bold;
-                text-align: center;
-                font-size: 9pt;
-            }
-            
-            td {
-                border: 1px solid #000; /* Border hitam penuh untuk setiap sel */
-                padding: 6px;
-                color: #000;
-                white-space: normal !important; /* Benarkan teks wrap */
-                vertical-align: top;
-            }
-            
-            /* Penyesuaian khas untuk cetakan */
-            .status-badge {
-                border: 1px solid #000;
-                background: none !important;
-                color: #000 !important;
-                padding: 2px;
-                font-weight: normal;
-            }
-            
-            .duration-badge {
-                background: none !important;
-                border: 1px solid #555;
-            }
+            @page { size: landscape; margin: 1cm; }
+            body { background-color: #fff; padding: 0; font-size: 9pt; font-family: "Times New Roman", serif; }
+            .container { box-shadow: none; border: 0; width: 100% !important; max-width: none !important; padding: 0; margin: 0; }
+            .controls-container, .nav-link, #pagination-controls, footer, h2, .analytics-container { display: none !important; }
+            .print-header { display: block; text-align: center; margin-bottom: 20px; }
+            .print-header h1 { font-size: 16pt; margin: 0; text-transform: uppercase; color: #000; }
+            .print-header p { font-size: 10pt; margin: 5px 0 0 0; color: #555; }
+            #rekod-container { overflow: visible !important; display: block; }
+            table { width: 100%; border-collapse: collapse; border: 2px solid #000; min-width: 0; margin-top: 0; table-layout: auto; }
+            thead { display: table-header-group; }
+            tr { page-break-inside: avoid; }
+            th { background-color: #dcdcdc !important; color: #000; border: 1px solid #000; padding: 8px; font-weight: bold; text-align: center; font-size: 9pt; }
+            td { border: 1px solid #000; padding: 6px; color: #000; white-space: normal !important; vertical-align: top; }
+            .status-badge { border: 1px solid #000; background: none !important; color: #000 !important; padding: 2px; font-weight: normal; }
+            .duration-badge { background: none !important; border: 1px solid #555; }
         }
     </style>
 </head>
@@ -190,6 +116,18 @@
         </div>
 
         <h2>Dashboard Rekod Pergerakan Staf</h2>
+        
+        <div class="analytics-container">
+            <div class="chart-box">
+                <h3>Statistik Jenis Pergerakan</h3>
+                <canvas id="jenisChart"></canvas>
+            </div>
+            <div class="chart-box">
+                <h3>Statistik Mengikut Wilayah</h3>
+                <canvas id="wilayahChart"></canvas>
+            </div>
+        </div>
+
         <div class="controls-container">
             <div class="filter-group">
                 <label for="filter-tarikh">Tarikh Hantar:</label>
@@ -255,10 +193,8 @@
         const loadingElement = document.getElementById('loading');
         const filterTarikhInput = document.getElementById('filter-tarikh');
         const filterNamaInput = document.getElementById('filter-nama');
-        // ## DAPATKAN ELEMEN FILTER BARU ##
         const filterJenisInput = document.getElementById('filter-jenis');
         const filterWilayahInput = document.getElementById('filter-wilayah');
-        
         const resetButton = document.getElementById('reset-button');
         const printButton = document.getElementById('print-button');
         const prevButton = document.getElementById('prev-button');
@@ -269,92 +205,114 @@
         let rekodYangDitapis = [];
         let currentPage = 1;
         const recordsPerPage = 50;
+        
+        // Variabel untuk Carta
+        let jenisChartInstance = null;
+        let wilayahChartInstance = null;
 
-        // Set tarikh cetakan
         document.getElementById('tarikh-cetak').innerText = new Date().toLocaleDateString('ms-MY', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
 
-        function parseTimestampToUTCMillis(timestampStr) {
-            if (!timestampStr || typeof timestampStr !== 'string') return null;
-            const parts = timestampStr.split(',');
-            if (parts.length < 1) return null;
-            const datePart = parts[0].trim();
-            const timePart = parts[1] ? parts[1].trim() : '00:00:00';
-            if (datePart.includes('/')) {
-                const dateParts = datePart.split('/');
-                if (dateParts.length === 3) {
-                    const timeParts = timePart.split(':');
-                    const yyyy = parseInt(dateParts[2], 10);
-                    const MM = parseInt(dateParts[1], 10) - 1;
-                    const dd = parseInt(dateParts[0], 10);
-                    const hh = parseInt(timeParts[0] || '0', 10);
-                    const mm = parseInt(timeParts[1] || '0', 10);
-                    const ss = parseInt(timeParts[2] || '0', 10);
-                    if (!isNaN(yyyy) && !isNaN(MM) && !isNaN(dd) && !isNaN(hh) && !isNaN(mm) && !isNaN(ss)) {
-                       const utcMillis = Date.UTC(yyyy, MM, dd, hh, mm, ss);
-                       const tempDate = new Date(utcMillis);
-                       if (tempDate.getUTCFullYear() === yyyy && tempDate.getUTCMonth() === MM && tempDate.getUTCDate() === dd) { return utcMillis; }
-                    }
-                }
-            }
-            try {
-                 const dateObj = new Date(timestampStr);
-                 if (!isNaN(dateObj.getTime())) { return dateObj.getTime(); }
-            } catch (e) { /* Abaikan */ }
-            return null;
+        function parseTimestampToUTCMillis(timestampStr) { /* ... (sama seperti sebelum ini) ... */
+             if (!timestampStr || typeof timestampStr !== 'string') return null;
+             const parts = timestampStr.split(','); if (parts.length < 1) return null;
+             const datePart = parts[0].trim(); const timePart = parts[1] ? parts[1].trim() : '00:00:00';
+             if (datePart.includes('/')) {
+                 const dateParts = datePart.split('/');
+                 if (dateParts.length === 3) {
+                     const timeParts = timePart.split(':');
+                     const yyyy = parseInt(dateParts[2], 10); const MM = parseInt(dateParts[1], 10) - 1; const dd = parseInt(dateParts[0], 10);
+                     const hh = parseInt(timeParts[0] || '0', 10); const mm = parseInt(timeParts[1] || '0', 10); const ss = parseInt(timeParts[2] || '0', 10);
+                     if (!isNaN(yyyy) && !isNaN(MM) && !isNaN(dd) && !isNaN(hh) && !isNaN(mm) && !isNaN(ss)) {
+                        const utcMillis = Date.UTC(yyyy, MM, dd, hh, mm, ss);
+                        const tempDate = new Date(utcMillis);
+                        if (tempDate.getUTCFullYear() === yyyy && tempDate.getUTCMonth() === MM && tempDate.getUTCDate() === dd) { return utcMillis; }
+                     }
+                 }
+             }
+             try { const dateObj = new Date(timestampStr); if (!isNaN(dateObj.getTime())) { return dateObj.getTime(); } } catch (e) { }
+             return null;
         }
-        
         function normalizeDateFromTimestamp(timestampStr) {
-            const millis = parseTimestampToUTCMillis(timestampStr);
-            if (!millis) return ''; 
-             const dateObj = new Date(millis);
-             const year = dateObj.getUTCFullYear();
-             const month = String(dateObj.getUTCMonth() + 1).padStart(2, '0');
-             const day = String(dateObj.getUTCDate()).padStart(2, '0');
-             return `${year}-${month}-${day}`;
+            const millis = parseTimestampToUTCMillis(timestampStr); if (!millis) return ''; 
+             const dateObj = new Date(millis); const year = dateObj.getUTCFullYear(); const month = String(dateObj.getUTCMonth() + 1).padStart(2, '0'); const day = String(dateObj.getUTCDate()).padStart(2, '0'); return `${year}-${month}-${day}`;
         }
-
         function parseToMinutes(timeStr) {
             if (!timeStr) return null;
-            if (timeStr.includes(':') && !timeStr.toLowerCase().includes('m')) {
-                const [hours, minutes] = timeStr.split(':').map(Number);
-                return (hours * 60) + minutes;
-            }
+            if (timeStr.includes(':') && !timeStr.toLowerCase().includes('m')) { const [hours, minutes] = timeStr.split(':').map(Number); return (hours * 60) + minutes; }
             const match = timeStr.match(/(\d+):(\d+)(?:\s*)(AM|PM)/i);
-            if (match) {
-                let hours = parseInt(match[1]);
-                const minutes = parseInt(match[2]);
-                const ampm = match[3].toUpperCase();
-                if (ampm === 'PM' && hours !== 12) hours += 12;
-                if (ampm === 'AM' && hours === 12) hours = 0;
-                return (hours * 60) + minutes;
-            }
+            if (match) { let hours = parseInt(match[1]); const minutes = parseInt(match[2]); const ampm = match[3].toUpperCase(); if (ampm === 'PM' && hours !== 12) hours += 12; if (ampm === 'AM' && hours === 12) hours = 0; return (hours * 60) + minutes; }
             return null;
         }
-
         function kiraTempoh(masaMula, masaTamat) {
-            const startMin = parseToMinutes(masaMula);
-            const endMin = parseToMinutes(masaTamat);
+            const startMin = parseToMinutes(masaMula); const endMin = parseToMinutes(masaTamat);
             if (startMin === null || endMin === null) return '';
-            let diff = endMin - startMin;
-            if (diff < 0) diff += 1440;
-            const hours = Math.floor(diff / 60);
-            const minutes = diff % 60;
-            let tempoh = '';
-            if (hours > 0) tempoh += `${hours} jam `;
-            if (minutes > 0) tempoh += `${minutes} minit`;
-            return tempoh.trim() || '0 minit';
+            let diff = endMin - startMin; if (diff < 0) diff += 1440;
+            const hours = Math.floor(diff / 60); const minutes = diff % 60;
+            let tempoh = ''; if (hours > 0) tempoh += `${hours} jam `; if (minutes > 0) tempoh += `${minutes} minit`; return tempoh.trim() || '0 minit';
         }
-
         function formatMasa(masa) {
             if (!masa) return '';
             if (masa.toLowerCase().includes('am') || masa.toLowerCase().includes('pm')) return masa;
-            const [jam, minit] = masa.split(':');
-            if (!jam) return masa;
-            let jamInt = parseInt(jam);
-            const ampm = jamInt >= 12 ? 'PM' : 'AM';
-            jamInt = jamInt % 12;
-            jamInt = jamInt ? jamInt : 12; 
+            const [jam, minit] = masa.split(':'); if (!jam) return masa;
+            let jamInt = parseInt(jam); const ampm = jamInt >= 12 ? 'PM' : 'AM'; jamInt = jamInt % 12; jamInt = jamInt ? jamInt : 12; 
             return `${jamInt}:${minit} ${ampm}`;
+        }
+
+        // ## FUNGSI BARU: JANA CARTA ##
+        function kemaskiniCarta(data) {
+            // 1. Kira data untuk Jenis Pergerakan
+            const kiraanJenis = {};
+            data.forEach(rekod => {
+                const jenis = rekod.jenis_pergerakan || 'Lain-lain';
+                kiraanJenis[jenis] = (kiraanJenis[jenis] || 0) + 1;
+            });
+
+            // 2. Kira data untuk Wilayah
+            const kiraanWilayah = {};
+            data.forEach(rekod => {
+                const wilayah = rekod.tempat_bertugas || 'Tidak Dinyatakan';
+                kiraanWilayah[wilayah] = (kiraanWilayah[wilayah] || 0) + 1;
+            });
+
+            // 3. Bina Carta Jenis (Pie/Doughnut)
+            const ctxJenis = document.getElementById('jenisChart').getContext('2d');
+            if (jenisChartInstance) jenisChartInstance.destroy(); // Hapus carta lama jika ada
+            
+            jenisChartInstance = new Chart(ctxJenis, {
+                type: 'doughnut',
+                data: {
+                    labels: Object.keys(kiraanJenis),
+                    datasets: [{
+                        data: Object.values(kiraanJenis),
+                        backgroundColor: ['#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b', '#858796', '#5a5c69'],
+                        borderWidth: 1
+                    }]
+                },
+                options: { responsive: true, plugins: { legend: { position: 'bottom', labels: { boxWidth: 10, font: { size: 10 } } } } }
+            });
+
+            // 4. Bina Carta Wilayah (Bar)
+            const ctxWilayah = document.getElementById('wilayahChart').getContext('2d');
+            if (wilayahChartInstance) wilayahChartInstance.destroy();
+
+            wilayahChartInstance = new Chart(ctxWilayah, {
+                type: 'bar',
+                data: {
+                    labels: Object.keys(kiraanWilayah),
+                    datasets: [{
+                        label: 'Jumlah Pergerakan',
+                        data: Object.values(kiraanWilayah),
+                        backgroundColor: '#0056b3',
+                        borderColor: '#004494',
+                        borderWidth: 1
+                    }]
+                },
+                options: { 
+                    responsive: true, 
+                    scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } }, x: { ticks: { font: { size: 9 } } } },
+                    plugins: { legend: { display: false } }
+                }
+            });
         }
 
         async function muatNaikRekod() {
@@ -379,6 +337,10 @@
                 semuaRekod = data;
                 rekodYangDitapis = semuaRekod;
                 currentPage = 1;
+                
+                // ## PANGGIL FUNGSI CARTA SELEPAS DATA DIMUAT ##
+                kemaskiniCarta(semuaRekod);
+
                 paparkanRekod();
             } catch (error) {
                 console.error('Ralat memuat turun rekod:', error);
@@ -390,18 +352,15 @@
         function paparkanRekod() {
             loadingElement.style.display = 'none';
             rekodContainer.innerHTML = '';
-
             if (!rekodYangDitapis || rekodYangDitapis.length === 0) {
                 rekodContainer.innerHTML = '<p style="text-align: center;">Tiada rekod ditemui.</p>';
                 document.getElementById('pagination-controls').style.display = 'none';
                 return;
             }
-            
             document.getElementById('pagination-controls').style.display = 'flex';
             const startIndex = (currentPage - 1) * recordsPerPage;
             const endIndex = startIndex + recordsPerPage;
             const dataUntukPaparan = rekodYangDitapis.slice(startIndex, endIndex);
-            
             const table = document.createElement('table');
             const nowMillis = Date.now(); 
 
@@ -425,35 +384,20 @@
                     ${dataUntukPaparan.map((rekod, index) => {
                         const recordMillis = parseTimestampToUTCMillis(rekod.timestamp);
                         const hoursDiff = recordMillis !== null ? (nowMillis - recordMillis) / (1000 * 60 * 60) : Infinity; 
-                        
                         let statusPaparan = rekod.status || 'N/A';
                         let statusClass = 'status-default';
                         if (rekod.status === 'BARU') {
-                            if (hoursDiff > 24) { 
-                                statusPaparan = 'Dilihat';
-                                statusClass = 'status-dilihat';
-                            } else {
-                                statusClass = 'status-baru'; 
-                            }
-                        } else {
-                             if (statusPaparan === 'Dilihat') statusClass = 'status-dilihat';
-                        }
-
+                            if (hoursDiff > 24) { statusPaparan = 'Dilihat'; statusClass = 'status-dilihat'; } else { statusClass = 'status-baru'; }
+                        } else { if (statusPaparan === 'Dilihat') statusClass = 'status-dilihat'; }
+                        
                         let paparanWaktu = '-';
                         const jenis = (rekod.jenis_pergerakan || '').toUpperCase();
                         const isCuti = jenis.includes("CUTI") || jenis.includes("CR -") || jenis.includes("MC -");
-
-                        if (isCuti) {
-                            paparanWaktu = '<span style="color:#888; font-style:italic;">Sepenuh Hari</span>';
-                        } else if (rekod.masa_mula && rekod.masa_tamat) {
+                        if (isCuti) { paparanWaktu = '<span style="color:#888; font-style:italic;">Sepenuh Hari</span>'; } 
+                        else if (rekod.masa_mula && rekod.masa_tamat) {
                             const tempoh = kiraTempoh(rekod.masa_mula, rekod.masa_tamat);
-                            paparanWaktu = `
-                                <div class="time-display">${formatMasa(rekod.masa_mula)} - ${formatMasa(rekod.masa_tamat)}</div>
-                                <div class="duration-badge">${tempoh}</div>
-                            `;
-                        } else if (rekod.masa_pergi) {
-                             paparanWaktu = formatMasa(rekod.masa_pergi);
-                        }
+                            paparanWaktu = `<div class="time-display">${formatMasa(rekod.masa_mula)} - ${formatMasa(rekod.masa_tamat)}</div><div class="duration-badge">${tempoh}</div>`;
+                        } else if (rekod.masa_pergi) { paparanWaktu = formatMasa(rekod.masa_pergi); }
 
                         const escapeHTML = (str) => str ? String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#039;') : '';
 
@@ -482,66 +426,506 @@
             nextButton.disabled = (currentPage === totalPages || totalPages === 0);
         }
 
-        // ## LOGIK SARINGAN DIKEMAS KINI ##
         function saringRekod() {
             const tarikhDipilih = filterTarikhInput.value;
             const namaDimasukkan = filterNamaInput.value.toLowerCase();
-            const jenisDipilih = filterJenisInput.value; // Ambil nilai filter jenis
+            const jenisDipilih = filterJenisInput.value;
             const wilayahDipilih = filterWilayahInput.value;
             
             let rekodDisaring = semuaRekod;
-
-            if (tarikhDipilih) {
-                rekodDisaring = rekodDisaring.filter(rekod => {
-                    const tarikhHantar = normalizeDateFromTimestamp(rekod.timestamp);
-                    return tarikhHantar && tarikhHantar === tarikhDipilih;
-                });
-            }
-            if (namaDimasukkan) {
-                rekodDisaring = rekodDisaring.filter(rekod => 
-                    rekod.nama_staf && rekod.nama_staf.toLowerCase().includes(namaDimasukkan)
-                );
-            }
-            // Filter mengikut jenis pergerakan
-            if (jenisDipilih) {
-                rekodDisaring = rekodDisaring.filter(rekod => rekod.jenis_pergerakan === jenisDipilih);
-            }
-            if (wilayahDipilih) {
-                rekodDisaring = rekodDisaring.filter(rekod => rekod.tempat_bertugas === wilayahDipilih);
-            }
+            if (tarikhDipilih) { rekodDisaring = rekodDisaring.filter(rekod => { const tarikhHantar = normalizeDateFromTimestamp(rekod.timestamp); return tarikhHantar && tarikhHantar === tarikhDipilih; }); }
+            if (namaDimasukkan) { rekodDisaring = rekodDisaring.filter(rekod => rekod.nama_staf && rekod.nama_staf.toLowerCase().includes(namaDimasukkan) ); }
+            if (jenisDipilih) { rekodDisaring = rekodDisaring.filter(rekod => rekod.jenis_pergerakan === jenisDipilih); }
+            if (wilayahDipilih) { rekodDisaring = rekodDisaring.filter(rekod => rekod.tempat_bertugas === wilayahDipilih); }
             
             rekodYangDitapis = rekodDisaring;
             currentPage = 1;
+            
+            // ## KEMASKINI CARTA MENGIKUT HASIL SARINGAN ##
+            kemaskiniCarta(rekodYangDitapis);
+            
             paparkanRekod();
         }
 
         document.addEventListener('DOMContentLoaded', muatNaikRekod);
         filterTarikhInput.addEventListener('change', saringRekod);
         filterNamaInput.addEventListener('input', saringRekod);
-        filterJenisInput.addEventListener('change', saringRekod); // Event listener baru
+        filterJenisInput.addEventListener('change', saringRekod);
         filterWilayahInput.addEventListener('change', saringRekod);
-
         resetButton.addEventListener('click', () => {
-            filterTarikhInput.value = '';
-            filterNamaInput.value = '';
-            filterJenisInput.value = '';
-            filterWilayahInput.value = '';
-            rekodYangDitapis = semuaRekod;
-            currentPage = 1;
-            paparkanRekod();
+            filterTarikhInput.value = ''; filterNamaInput.value = ''; filterJenisInput.value = ''; filterWilayahInput.value = '';
+            rekodYangDitapis = semuaRekod; currentPage = 1; 
+            kemaskiniCarta(semuaRekod); // Reset carta
+            paparkanRekod(); 
         });
+        printButton.addEventListener('click', () => { window.print(); });
+        prevButton.addEventListener('click', () => { if (currentPage > 1) { currentPage--; paparkanRekod(); } });
+        nextButton.addEventListener('click', () => { const totalPages = Math.ceil(rekodYangDitapis.length / recordsPerPage); if (currentPage < totalPages) { currentPage++; paparkanRekod(); } });
+    </script>
+</body>
+</html><!DOCTYPE html>
+<html lang="ms">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Rekod Pergerakan - SKM</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <style>
+        /* Gaya Asas Skrin */
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; background-color: #f4f7f6; margin: 0; padding: 10px; display: flex; flex-direction: column; min-height: 100vh; }
+        .container { max-width: 1400px; margin: auto; background-color: #ffffff; padding: 20px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05); width: 100%; flex-grow: 1; box-sizing: border-box; overflow: hidden; }
         
-        printButton.addEventListener('click', () => {
-            window.print();
-        });
+        h2 { text-align: center; color: #222; border-bottom: 2px solid #e0e0e0; padding-bottom: 15px; margin-bottom: 20px; font-size: 1.5em; }
+        .print-header { display: none; }
+
+        /* ## GAYA UNTUK KAWASAN ANALITIK ## */
+        .analytics-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            margin-bottom: 30px;
+            justify-content: center;
+        }
+        .chart-box {
+            background: #fff;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 15px;
+            flex: 1;
+            min-width: 300px;
+            max-width: 600px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+        .chart-box h3 { text-align: center; margin-top: 0; color: #555; font-size: 1em; }
+
+        .controls-container { background-color: #f8f9fa; padding: 15px; border-radius: 8px; margin-bottom: 20px; display: flex; flex-direction: column; gap: 15px; }
+        .filter-group { display: flex; flex-direction: column; gap: 10px; width: 100%; }
+        .filter-group label { font-weight: 600; color: #333; margin-bottom: 3px; }
         
-        prevButton.addEventListener('click', () => {
-            if (currentPage > 1) { currentPage--; paparkanRekod(); }
-        });
-        nextButton.addEventListener('click', () => {
+        input[type="date"], input[type="text"], select, button { padding: 10px 12px; border-radius: 6px; border: 1px solid #ced4da; font-size: 14px; width: 100%; box-sizing: border-box; }
+         button { width: auto; padding: 10px 15px; cursor: pointer; background-color: #0056b3; color: white; border-color: #0056b3; font-weight: 600; transition: background-color 0.2s ease;}
+         button:hover { background-color: #004494; }
+        .controls-buttons { display: flex; gap: 10px; justify-content: space-between; width: 100%; }
+        #reset-button { background-color: #6c757d; border-color: #6c757d; }
+        #reset-button:hover { background-color: #5a6268; }
+        #print-button { background-color: #28a745; border-color: #28a745; }
+        #print-button:hover { background-color: #218838; }
+        
+        #rekod-container { width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+        table { width: 100%; min-width: 900px; border-collapse: separate; border-spacing: 0; margin-top: 20px; border: 1px solid #dee2e6; border-radius: 8px; }
+        th, td { padding: 12px 15px; text-align: left; border-bottom: 1px solid #dee2e6; vertical-align: middle; white-space: nowrap; }
+         td.col-tujuan, th.col-tujuan, td.col-destinasi, th.col-destinasi { white-space: normal; word-wrap: break-word;}
+        th:first-child, td:first-child { width: auto; text-align: right; }
+        th { background-color: #f1f3f5; font-weight: 600; color: #333; text-transform: uppercase; font-size: 11px; letter-spacing: 0.5px; position: sticky; top: 0; z-index: 1; }
+        tbody tr:last-child td { border-bottom: 0; }
+        tbody tr:hover { background-color: #f8f9fa; }
+        
+        .status-badge { padding: 5px 10px; border-radius: 15px; font-weight: 600; font-size: 11px; display: inline-block; text-align: center; min-width: 50px;}
+        .status-baru { background-color: #fff0c2; color: #7a5c00; }
+        .status-dilihat { background-color: #e9ecef; color: #495057; }
+        .status-default { background-color: #d1ecf1; color: #0c5c60; }
+        
+        .nav-link { display: block; text-align: center; margin-top: 25px; color: #0056b3; font-weight: 600; }
+        #loading { text-align: center; padding: 50px; font-size: 1.2em; color: #888; }
+        #pagination-controls { display: flex; justify-content: center; align-items: center; gap: 10px; margin-top: 25px; }
+        #pagination-controls button { width: auto; padding: 8px 15px; }
+        #pagination-controls button:disabled { background-color: #ced4da; border-color: #ced4da; cursor: not-allowed; }
+        #page-info { font-weight: 600; color: #333; font-size: 14px; }
+        footer { text-align: center; padding: 20px 10px; margin-top: 30px; color: #888; font-size: 12px; }
+        
+        .time-display { font-size: 0.9em; color: #555; }
+        .duration-badge { display: inline-block; padding: 2px 6px; background-color: #e2e3e5; color: #383d41; border-radius: 4px; font-size: 0.85em; margin-top: 4px; font-weight: bold; }
+
+        @media (min-width: 768px) {
+             body { padding: 20px; }
+             .container { padding: 30px; }
+             .controls-container { flex-direction: row; justify-content: space-between; }
+             .filter-group { flex-direction: row; width: auto; }
+             .filter-group label { margin-bottom: 0; }
+              input, select { width: auto; }
+             .controls-buttons { width: auto; }
+             h2 { font-size: 1.8em; }
+             th, td { padding: 14px 18px; font-size: 14px; }
+              th { font-size: 12px; }
+             .status-badge { padding: 5px 12px; font-size: 12px; min-width: 60px;}
+             #pagination-controls button { width: 120px; }
+         }
+
+        @media print {
+            @page { size: landscape; margin: 1cm; }
+            body { background-color: #fff; padding: 0; font-size: 9pt; font-family: "Times New Roman", serif; }
+            .container { box-shadow: none; border: 0; width: 100% !important; max-width: none !important; padding: 0; margin: 0; }
+            .controls-container, .nav-link, #pagination-controls, footer, h2, .analytics-container { display: none !important; }
+            .print-header { display: block; text-align: center; margin-bottom: 20px; }
+            .print-header h1 { font-size: 16pt; margin: 0; text-transform: uppercase; color: #000; }
+            .print-header p { font-size: 10pt; margin: 5px 0 0 0; color: #555; }
+            #rekod-container { overflow: visible !important; display: block; }
+            table { width: 100%; border-collapse: collapse; border: 2px solid #000; min-width: 0; margin-top: 0; table-layout: auto; }
+            thead { display: table-header-group; }
+            tr { page-break-inside: avoid; }
+            th { background-color: #dcdcdc !important; color: #000; border: 1px solid #000; padding: 8px; font-weight: bold; text-align: center; font-size: 9pt; }
+            td { border: 1px solid #000; padding: 6px; color: #000; white-space: normal !important; vertical-align: top; }
+            .status-badge { border: 1px solid #000; background: none !important; color: #000 !important; padding: 2px; font-weight: normal; }
+            .duration-badge { background: none !important; border: 1px solid #555; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <div class="print-header">
+            <h1>Laporan Rekod Pergerakan Kakitangan</h1>
+            <p>Suruhanjaya Koperasi Malaysia Negeri Sabah</p>
+            <p>Dicetak pada: <span id="tarikh-cetak"></span></p>
+        </div>
+
+        <h2>Dashboard Rekod Pergerakan Staf</h2>
+        
+        <div class="analytics-container">
+            <div class="chart-box">
+                <h3>Statistik Jenis Pergerakan</h3>
+                <canvas id="jenisChart"></canvas>
+            </div>
+            <div class="chart-box">
+                <h3>Statistik Mengikut Wilayah</h3>
+                <canvas id="wilayahChart"></canvas>
+            </div>
+        </div>
+
+        <div class="controls-container">
+            <div class="filter-group">
+                <label for="filter-tarikh">Tarikh Hantar:</label>
+                <input type="date" id="filter-tarikh">
+                
+                <label for="filter-nama">Saring Nama:</label>
+                <input type="text" id="filter-nama" placeholder="Taip nama staf...">
+                
+                <label for="filter-jenis">Jenis Pergerakan:</label>
+                <select id="filter-jenis">
+                    <option value="">Semua Jenis</option>
+                    <option value="UR - Urusan Rasmi/Koperasi">UR - Urusan Rasmi</option>
+                    <option value="Kursus/Latihan">Kursus/Latihan</option>
+                    <option value="Bekerja Dari Rumah">Bekerja Dari Rumah</option>
+                    <option value="CR - Cuti Rehat">CR - Cuti Rehat</option>
+                    <option value="MC - Cuti Sakit">MC - Cuti Sakit</option>
+                    <option value="CG - Cuti Gantian">CG - Cuti Gantian</option>
+                    <option value="CK - Cuti Kuarantin">CK - Cuti Kuarantin</option>
+                    <option value="CB - Cuti Bersalin">CB - Cuti Bersalin</option>
+                    <option value="Kebenaran 4 Jam / HRMIS">Kebenaran 4 Jam</option>
+                </select>
+
+                <label for="filter-wilayah">Wilayah:</label>
+                <select id="filter-wilayah">
+                    <option value="">Semua Wilayah</option>
+                    <option value="SKM Negeri Sabah">SKM Negeri Sabah</option>
+                    <option value="SKM Wilayah PBS">SKM Wilayah PBS</option>
+                    <option value="SKM Wilayah PBU">SKM Wilayah PBU</option>
+                    <option value="SKM W.P Labuan">SKM W.P Labuan</option>
+                    <option value="SKM Wilayah Beaufort">SKM Wilayah Beaufort</option>
+                    <option value="SKM Wilayah Keningau">SKM Wilayah Keningau</option>
+                    <option value="SKM Wilayah Ranau">SKM Wilayah Ranau</option>
+                    <option value="SKM Wilayah Kota Marudu">SKM Wilayah Kota Marudu</option>
+                    <option value="SKM Wilayah Kudat">SKM Wilayah Kudat</option>
+                    <option value="SKM Wilayah Sandakan">SKM Wilayah Sandakan</option>
+                    <option value="SKM Wilayah Lahad Datu">SKM Wilayah Lahad Datu</option>
+                    <option value="SKM Wilayah Tawau">SKM Wilayah Tawau</option>
+                </select>
+            </div>
+             <div class="controls-buttons">
+                <button id="reset-button">Papar Semua</button>
+                <button id="print-button">🖨️ Cetak Laporan</button>
+             </div>
+        </div>
+        <div id="rekod-container">
+            <p id="loading">Memuat turun rekod...</p>
+        </div>
+        <div id="pagination-controls">
+            <button id="prev-button" disabled>Sebelum</button>
+            <span id="page-info">Halaman 1</span>
+            <button id="next-button" disabled>Seterusnya</button>
+        </div>
+        <a href="index.html" class="nav-link">Kembali ke Borang Permohonan</a>
+    </div>
+    
+    <footer>
+        <p>Hak Cipta Terpelihara &copy; Harriet Justine, Unit Pengurusan dan Teknologi Maklumat. Inovasi Untuk Semua.</p>
+    </footer>
+
+    <script>
+        const API_SERVER_URL = 'https://projek-skm-server.onrender.com';
+        const rekodContainer = document.getElementById('rekod-container');
+        const loadingElement = document.getElementById('loading');
+        const filterTarikhInput = document.getElementById('filter-tarikh');
+        const filterNamaInput = document.getElementById('filter-nama');
+        const filterJenisInput = document.getElementById('filter-jenis');
+        const filterWilayahInput = document.getElementById('filter-wilayah');
+        const resetButton = document.getElementById('reset-button');
+        const printButton = document.getElementById('print-button');
+        const prevButton = document.getElementById('prev-button');
+        const nextButton = document.getElementById('next-button');
+        const pageInfo = document.getElementById('page-info');
+        
+        let semuaRekod = [];
+        let rekodYangDitapis = [];
+        let currentPage = 1;
+        const recordsPerPage = 50;
+        
+        // Variabel untuk Carta
+        let jenisChartInstance = null;
+        let wilayahChartInstance = null;
+
+        document.getElementById('tarikh-cetak').innerText = new Date().toLocaleDateString('ms-MY', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+
+        function parseTimestampToUTCMillis(timestampStr) { /* ... (sama seperti sebelum ini) ... */
+             if (!timestampStr || typeof timestampStr !== 'string') return null;
+             const parts = timestampStr.split(','); if (parts.length < 1) return null;
+             const datePart = parts[0].trim(); const timePart = parts[1] ? parts[1].trim() : '00:00:00';
+             if (datePart.includes('/')) {
+                 const dateParts = datePart.split('/');
+                 if (dateParts.length === 3) {
+                     const timeParts = timePart.split(':');
+                     const yyyy = parseInt(dateParts[2], 10); const MM = parseInt(dateParts[1], 10) - 1; const dd = parseInt(dateParts[0], 10);
+                     const hh = parseInt(timeParts[0] || '0', 10); const mm = parseInt(timeParts[1] || '0', 10); const ss = parseInt(timeParts[2] || '0', 10);
+                     if (!isNaN(yyyy) && !isNaN(MM) && !isNaN(dd) && !isNaN(hh) && !isNaN(mm) && !isNaN(ss)) {
+                        const utcMillis = Date.UTC(yyyy, MM, dd, hh, mm, ss);
+                        const tempDate = new Date(utcMillis);
+                        if (tempDate.getUTCFullYear() === yyyy && tempDate.getUTCMonth() === MM && tempDate.getUTCDate() === dd) { return utcMillis; }
+                     }
+                 }
+             }
+             try { const dateObj = new Date(timestampStr); if (!isNaN(dateObj.getTime())) { return dateObj.getTime(); } } catch (e) { }
+             return null;
+        }
+        function normalizeDateFromTimestamp(timestampStr) {
+            const millis = parseTimestampToUTCMillis(timestampStr); if (!millis) return ''; 
+             const dateObj = new Date(millis); const year = dateObj.getUTCFullYear(); const month = String(dateObj.getUTCMonth() + 1).padStart(2, '0'); const day = String(dateObj.getUTCDate()).padStart(2, '0'); return `${year}-${month}-${day}`;
+        }
+        function parseToMinutes(timeStr) {
+            if (!timeStr) return null;
+            if (timeStr.includes(':') && !timeStr.toLowerCase().includes('m')) { const [hours, minutes] = timeStr.split(':').map(Number); return (hours * 60) + minutes; }
+            const match = timeStr.match(/(\d+):(\d+)(?:\s*)(AM|PM)/i);
+            if (match) { let hours = parseInt(match[1]); const minutes = parseInt(match[2]); const ampm = match[3].toUpperCase(); if (ampm === 'PM' && hours !== 12) hours += 12; if (ampm === 'AM' && hours === 12) hours = 0; return (hours * 60) + minutes; }
+            return null;
+        }
+        function kiraTempoh(masaMula, masaTamat) {
+            const startMin = parseToMinutes(masaMula); const endMin = parseToMinutes(masaTamat);
+            if (startMin === null || endMin === null) return '';
+            let diff = endMin - startMin; if (diff < 0) diff += 1440;
+            const hours = Math.floor(diff / 60); const minutes = diff % 60;
+            let tempoh = ''; if (hours > 0) tempoh += `${hours} jam `; if (minutes > 0) tempoh += `${minutes} minit`; return tempoh.trim() || '0 minit';
+        }
+        function formatMasa(masa) {
+            if (!masa) return '';
+            if (masa.toLowerCase().includes('am') || masa.toLowerCase().includes('pm')) return masa;
+            const [jam, minit] = masa.split(':'); if (!jam) return masa;
+            let jamInt = parseInt(jam); const ampm = jamInt >= 12 ? 'PM' : 'AM'; jamInt = jamInt % 12; jamInt = jamInt ? jamInt : 12; 
+            return `${jamInt}:${minit} ${ampm}`;
+        }
+
+        // ## FUNGSI BARU: JANA CARTA ##
+        function kemaskiniCarta(data) {
+            // 1. Kira data untuk Jenis Pergerakan
+            const kiraanJenis = {};
+            data.forEach(rekod => {
+                const jenis = rekod.jenis_pergerakan || 'Lain-lain';
+                kiraanJenis[jenis] = (kiraanJenis[jenis] || 0) + 1;
+            });
+
+            // 2. Kira data untuk Wilayah
+            const kiraanWilayah = {};
+            data.forEach(rekod => {
+                const wilayah = rekod.tempat_bertugas || 'Tidak Dinyatakan';
+                kiraanWilayah[wilayah] = (kiraanWilayah[wilayah] || 0) + 1;
+            });
+
+            // 3. Bina Carta Jenis (Pie/Doughnut)
+            const ctxJenis = document.getElementById('jenisChart').getContext('2d');
+            if (jenisChartInstance) jenisChartInstance.destroy(); // Hapus carta lama jika ada
+            
+            jenisChartInstance = new Chart(ctxJenis, {
+                type: 'doughnut',
+                data: {
+                    labels: Object.keys(kiraanJenis),
+                    datasets: [{
+                        data: Object.values(kiraanJenis),
+                        backgroundColor: ['#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b', '#858796', '#5a5c69'],
+                        borderWidth: 1
+                    }]
+                },
+                options: { responsive: true, plugins: { legend: { position: 'bottom', labels: { boxWidth: 10, font: { size: 10 } } } } }
+            });
+
+            // 4. Bina Carta Wilayah (Bar)
+            const ctxWilayah = document.getElementById('wilayahChart').getContext('2d');
+            if (wilayahChartInstance) wilayahChartInstance.destroy();
+
+            wilayahChartInstance = new Chart(ctxWilayah, {
+                type: 'bar',
+                data: {
+                    labels: Object.keys(kiraanWilayah),
+                    datasets: [{
+                        label: 'Jumlah Pergerakan',
+                        data: Object.values(kiraanWilayah),
+                        backgroundColor: '#0056b3',
+                        borderColor: '#004494',
+                        borderWidth: 1
+                    }]
+                },
+                options: { 
+                    responsive: true, 
+                    scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } }, x: { ticks: { font: { size: 9 } } } },
+                    plugins: { legend: { display: false } }
+                }
+            });
+        }
+
+        async function muatNaikRekod() {
+             loadingElement.style.display = 'block';
+             rekodContainer.innerHTML = '<p id="loading">Memuat turun rekod...</p>'; 
+             document.getElementById('pagination-controls').style.display = 'none'; 
+            try {
+                const response = await fetch(`${API_SERVER_URL}/get-rekod`, { cache: 'no-cache' }); 
+                if (!response.ok) throw new Error(`Server Error: ${response.statusText}`);
+                let data = await response.json();
+                 if (!Array.isArray(data)) { console.error("Data bukan array:", data); data = []; }
+                
+                data.sort((a, b) => {
+                     const timeA = parseTimestampToUTCMillis(a.timestamp);
+                     const timeB = parseTimestampToUTCMillis(b.timestamp);
+                     if (timeA === null && timeB === null) return 0; 
+                     if (timeA === null) return 1;          
+                     if (timeB === null) return -1;          
+                     return timeB - timeA; 
+                 });
+                 
+                semuaRekod = data;
+                rekodYangDitapis = semuaRekod;
+                currentPage = 1;
+                
+                // ## PANGGIL FUNGSI CARTA SELEPAS DATA DIMUAT ##
+                kemaskiniCarta(semuaRekod);
+
+                paparkanRekod();
+            } catch (error) {
+                console.error('Ralat memuat turun rekod:', error);
+                rekodContainer.innerHTML = '<p style="color: red; text-align: center;">Gagal memuat turun rekod. Sila pastikan server backend berjalan dan URL adalah betul.</p>';
+                 document.getElementById('pagination-controls').style.display = 'none';
+            }
+        }
+
+        function paparkanRekod() {
+            loadingElement.style.display = 'none';
+            rekodContainer.innerHTML = '';
+            if (!rekodYangDitapis || rekodYangDitapis.length === 0) {
+                rekodContainer.innerHTML = '<p style="text-align: center;">Tiada rekod ditemui.</p>';
+                document.getElementById('pagination-controls').style.display = 'none';
+                return;
+            }
+            document.getElementById('pagination-controls').style.display = 'flex';
+            const startIndex = (currentPage - 1) * recordsPerPage;
+            const endIndex = startIndex + recordsPerPage;
+            const dataUntukPaparan = rekodYangDitapis.slice(startIndex, endIndex);
+            const table = document.createElement('table');
+            const nowMillis = Date.now(); 
+
+            table.innerHTML = `
+                <thead>
+                    <tr>
+                        <th class="col-no">No.</th>
+                        <th class="col-timestamp">Tarikh Hantar</th>
+                        <th class="col-nama">Nama Staf</th>
+                        <th class="col-jenis">Jenis Pergerakan</th>
+                        <th class="col-destinasi">Destinasi</th>
+                        <th>Waktu / Tempoh</th> 
+                        <th class="col-tarikh">Tarikh Mula</th>
+                        <th class="col-tarikh">Tarikh Akhir</th>
+                        <th class="col-tempat">Tempat Bertugas</th>
+                        <th class="col-tujuan">Tujuan</th>
+                        <th class="col-status">Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${dataUntukPaparan.map((rekod, index) => {
+                        const recordMillis = parseTimestampToUTCMillis(rekod.timestamp);
+                        const hoursDiff = recordMillis !== null ? (nowMillis - recordMillis) / (1000 * 60 * 60) : Infinity; 
+                        let statusPaparan = rekod.status || 'N/A';
+                        let statusClass = 'status-default';
+                        if (rekod.status === 'BARU') {
+                            if (hoursDiff > 24) { statusPaparan = 'Dilihat'; statusClass = 'status-dilihat'; } else { statusClass = 'status-baru'; }
+                        } else { if (statusPaparan === 'Dilihat') statusClass = 'status-dilihat'; }
+                        
+                        let paparanWaktu = '-';
+                        const jenis = (rekod.jenis_pergerakan || '').toUpperCase();
+                        const isCuti = jenis.includes("CUTI") || jenis.includes("CR -") || jenis.includes("MC -");
+                        if (isCuti) { paparanWaktu = '<span style="color:#888; font-style:italic;">Sepenuh Hari</span>'; } 
+                        else if (rekod.masa_mula && rekod.masa_tamat) {
+                            const tempoh = kiraTempoh(rekod.masa_mula, rekod.masa_tamat);
+                            paparanWaktu = `<div class="time-display">${formatMasa(rekod.masa_mula)} - ${formatMasa(rekod.masa_tamat)}</div><div class="duration-badge">${tempoh}</div>`;
+                        } else if (rekod.masa_pergi) { paparanWaktu = formatMasa(rekod.masa_pergi); }
+
+                        const escapeHTML = (str) => str ? String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#039;') : '';
+
+                        return `
+                            <tr>
+                                <td class="col-no">${startIndex + index + 1}</td>
+                                <td class="col-timestamp">${escapeHTML((rekod.timestamp || '').split(',')[0])}</td> 
+                                <td class="col-nama">${escapeHTML(rekod.nama_staf)}</td>
+                                <td class="col-jenis">${escapeHTML(rekod.jenis_pergerakan)}</td>
+                                <td class="col-destinasi">${escapeHTML(rekod.destinasi)}</td>
+                                <td>${paparanWaktu}</td>
+                                <td class="col-tarikh">${escapeHTML(rekod.tarikh_mula)}</td>
+                                <td class="col-tarikh">${escapeHTML(rekod.tarikh_akhir)}</td>
+                                <td class="col-tempat">${escapeHTML(rekod.tempat_bertugas)}</td>
+                                <td class="col-tujuan">${escapeHTML(rekod.tujuan)}</td>
+                                <td class="col-status"><span class="status-badge ${statusClass}">${escapeHTML(statusPaparan)}</span></td>
+                            </tr>
+                        `;
+                    }).join('')}
+                </tbody>
+            `;
+            rekodContainer.appendChild(table);
             const totalPages = Math.ceil(rekodYangDitapis.length / recordsPerPage);
-            if (currentPage < totalPages) { currentPage++; paparkanRekod(); }
+            pageInfo.textContent = `Halaman ${currentPage} dari ${totalPages}`;
+            prevButton.disabled = (currentPage === 1);
+            nextButton.disabled = (currentPage === totalPages || totalPages === 0);
+        }
+
+        function saringRekod() {
+            const tarikhDipilih = filterTarikhInput.value;
+            const namaDimasukkan = filterNamaInput.value.toLowerCase();
+            const jenisDipilih = filterJenisInput.value;
+            const wilayahDipilih = filterWilayahInput.value;
+            
+            let rekodDisaring = semuaRekod;
+            if (tarikhDipilih) { rekodDisaring = rekodDisaring.filter(rekod => { const tarikhHantar = normalizeDateFromTimestamp(rekod.timestamp); return tarikhHantar && tarikhHantar === tarikhDipilih; }); }
+            if (namaDimasukkan) { rekodDisaring = rekodDisaring.filter(rekod => rekod.nama_staf && rekod.nama_staf.toLowerCase().includes(namaDimasukkan) ); }
+            if (jenisDipilih) { rekodDisaring = rekodDisaring.filter(rekod => rekod.jenis_pergerakan === jenisDipilih); }
+            if (wilayahDipilih) { rekodDisaring = rekodDisaring.filter(rekod => rekod.tempat_bertugas === wilayahDipilih); }
+            
+            rekodYangDitapis = rekodDisaring;
+            currentPage = 1;
+            
+            // ## KEMASKINI CARTA MENGIKUT HASIL SARINGAN ##
+            kemaskiniCarta(rekodYangDitapis);
+            
+            paparkanRekod();
+        }
+
+        document.addEventListener('DOMContentLoaded', muatNaikRekod);
+        filterTarikhInput.addEventListener('change', saringRekod);
+        filterNamaInput.addEventListener('input', saringRekod);
+        filterJenisInput.addEventListener('change', saringRekod);
+        filterWilayahInput.addEventListener('change', saringRekod);
+        resetButton.addEventListener('click', () => {
+            filterTarikhInput.value = ''; filterNamaInput.value = ''; filterJenisInput.value = ''; filterWilayahInput.value = '';
+            rekodYangDitapis = semuaRekod; currentPage = 1; 
+            kemaskiniCarta(semuaRekod); // Reset carta
+            paparkanRekod(); 
         });
+        printButton.addEventListener('click', () => { window.print(); });
+        prevButton.addEventListener('click', () => { if (currentPage > 1) { currentPage--; paparkanRekod(); } });
+        nextButton.addEventListener('click', () => { const totalPages = Math.ceil(rekodYangDitapis.length / recordsPerPage); if (currentPage < totalPages) { currentPage++; paparkanRekod(); } });
     </script>
 </body>
 </html>
