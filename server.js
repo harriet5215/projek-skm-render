@@ -12,82 +12,61 @@ app.use(bodyParser.json());
 
 const APPS_SCRIPT_URL = process.env.APPS_SCRIPT_URL;
 
-app.get('/', (req, res) => {
-    res.send('Server Pergerakan Staf SKM (Admin Support) sedang berjalan.');
-});
+app.get('/', (req, res) => res.send('Server Admin V3 SKM Berjalan.'));
 
-// 1. HANTAR PERMOHONAN (Kekal)
+// --- API UNTUK BORANG ---
 app.post('/submit-mohon', async (req, res) => {
-    if (!APPS_SCRIPT_URL) return res.status(500).json({ success: false, message: 'URL Apps Script tidak ditetapkan.' });
-
+    if (!APPS_SCRIPT_URL) return res.status(500).json({ success: false, message: 'Config Error' });
     try {
         const params = new URLSearchParams();
-        params.append('action', 'add'); // Beritahu script ini adalah tambah
+        params.append('action', 'add');
         params.append('timestamp', new Date().toLocaleString('en-MY', { timeZone: 'Asia/Kuala_Lumpur' }));
-        // ... masukkan semua field ...
         Object.keys(req.body).forEach(key => params.append(key, req.body[key]));
-        // Default fields jika kosong
         if (!req.body.status) params.append('status', 'BARU');
-
-        const response = await axios.post(APPS_SCRIPT_URL, params, { headers: { 'Content-Type': 'application/x-www-form-urlencoded' } });
         
-        if (response.data && response.data.success) {
-            res.status(200).json({ success: true, message: 'Permohonan berjaya direkodkan!' });
-        } else {
-            res.status(500).json({ success: false, message: 'Ralat Apps Script.' });
-        }
-    } catch (error) {
-        console.error('Ralat:', error.message);
-        res.status(500).json({ success: false, message: 'Ralat Server.' });
-    }
+        const response = await axios.post(APPS_SCRIPT_URL, params);
+        res.json(response.data);
+    } catch (error) { res.status(500).json({ success: false, error: error.message }); }
 });
 
-// 2. AMBIL REKOD (Kekal)
 app.get('/get-rekod', async (req, res) => {
-    if (!APPS_SCRIPT_URL) return res.status(500).json({ message: 'URL Apps Script tidak ditetapkan.' });
+    if (!APPS_SCRIPT_URL) return res.status(500).json({ message: 'Config Error' });
     try {
         const response = await axios.get(APPS_SCRIPT_URL);
-        res.status(200).json(response.data);
-    } catch (error) {
-        res.status(500).json({ message: "Gagal mengambil rekod." });
-    }
+        res.json(response.data);
+    } catch (error) { res.status(500).json({ message: "Error fetching records" }); }
 });
 
-// ## 3. LALUAN BARU: PADAM REKOD (ADMIN) ##
+// --- API UNTUK ADMIN ---
+app.post('/admin/login', async (req, res) => {
+    if (!APPS_SCRIPT_URL) return res.status(500).json({ message: 'Config Error' });
+    try {
+        // Hantar GET request dengan params untuk login (Apps Script doGet handle ini)
+        const response = await axios.get(`${APPS_SCRIPT_URL}?action=login&username=${req.body.username}&password=${req.body.password}`);
+        res.json(response.data);
+    } catch (error) { res.status(500).json({ success: false, message: "Login Error" }); }
+});
+
 app.post('/admin/delete', async (req, res) => {
-    if (!APPS_SCRIPT_URL) return res.status(500).json({ message: 'URL Apps Script tidak ditetapkan.' });
-    
     try {
         const params = new URLSearchParams();
         params.append('action', 'delete');
-        params.append('original_timestamp', req.body.timestamp); // Kunci unik
-
-        const response = await axios.post(APPS_SCRIPT_URL, params, { headers: { 'Content-Type': 'application/x-www-form-urlencoded' } });
+        params.append('original_timestamp', req.body.timestamp);
+        const response = await axios.post(APPS_SCRIPT_URL, params);
         res.json(response.data);
-    } catch (error) {
-        console.error('Ralat Padam:', error.message);
-        res.status(500).json({ success: false, message: "Gagal memadam rekod." });
-    }
+    } catch (error) { res.status(500).json({ success: false }); }
 });
 
-// ## 4. LALUAN BARU: KEMASKINI REKOD (ADMIN) ##
-app.post('/admin/update', async (req, res) => {
-    if (!APPS_SCRIPT_URL) return res.status(500).json({ message: 'URL Apps Script tidak ditetapkan.' });
-
+app.post('/admin/update-profile', async (req, res) => {
     try {
         const params = new URLSearchParams();
-        params.append('action', 'update');
-        // Masukkan semua data yang hendak diupdate
-        Object.keys(req.body).forEach(key => params.append(key, req.body[key]));
-
-        const response = await axios.post(APPS_SCRIPT_URL, params, { headers: { 'Content-Type': 'application/x-www-form-urlencoded' } });
+        params.append('action', 'update_profile');
+        params.append('username', req.body.username);
+        params.append('new_password', req.body.new_password);
+        params.append('new_nama', req.body.new_nama);
+        const response = await axios.post(APPS_SCRIPT_URL, params);
         res.json(response.data);
-    } catch (error) {
-        console.error('Ralat Update:', error.message);
-        res.status(500).json({ success: false, message: "Gagal mengemaskini rekod." });
-    }
+    } catch (error) { res.status(500).json({ success: false }); }
 });
 
-app.listen(port, () => {
-    console.log(`Server sedang berjalan di port ${port}`);
-});
+app.listen(port, () => console.log(`Server running on port ${port}`));
