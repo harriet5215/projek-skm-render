@@ -5,122 +5,210 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Panel Admin - SKM</title>
     <style>
-        /* Gaya Asas (Sama seperti dashboard tetapi tema Merah/Gelap untuk Admin) */
-        body { font-family: sans-serif; background-color: #f0f2f5; padding: 20px; }
-        .container { max-width: 1400px; margin: auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
-        h2 { border-bottom: 3px solid #dc3545; padding-bottom: 10px; color: #dc3545; } /* Merah untuk Admin */
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background-color: #f0f2f5; padding: 20px; margin: 0; }
         
-        /* Jadual */
+        /* ## SKRIN LOGIN ## */
+        #login-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background-color: #343a40; /* Latar belakang gelap */
+            display: flex; justify-content: center; align-items: center;
+            z-index: 9999;
+        }
+        .login-box {
+            background: white; padding: 30px; border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3); text-align: center; width: 300px;
+        }
+        .login-box h3 { margin-top: 0; color: #333; }
+        .login-box input {
+            width: 100%; padding: 10px; margin: 10px 0;
+            border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box;
+        }
+        .login-box button {
+            width: 100%; padding: 10px; background-color: #dc3545;
+            color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold;
+        }
+        .login-box button:hover { background-color: #c82333; }
+
+        /* ## KANDUNGAN UTAMA (Disembunyikan mula-mula) ## */
+        #main-content { display: none; }
+
+        .container { max-width: 1400px; margin: auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        h2 { border-bottom: 3px solid #dc3545; padding-bottom: 10px; color: #dc3545; margin-top: 0; }
+        
         table { width: 100%; border-collapse: collapse; margin-top: 20px; font-size: 14px; }
         th, td { border: 1px solid #ddd; padding: 10px; text-align: left; }
-        th { background-color: #343a40; color: white; } /* Header Gelap */
+        th { background-color: #343a40; color: white; }
         tr:nth-child(even) { background-color: #f9f9f9; }
 
-        /* Butang Aksi */
         .btn { padding: 5px 10px; border: none; border-radius: 4px; cursor: pointer; font-size: 12px; margin-right: 5px; color: white;}
         .btn-edit { background-color: #ffc107; color: #000; }
         .btn-delete { background-color: #dc3545; }
-        .btn-refresh { background-color: #28a745; padding: 10px 20px; font-size: 14px; margin-bottom: 15px; }
+        .btn-refresh { background-color: #28a745; padding: 8px 15px; font-size: 14px; margin-bottom: 15px; color: white; text-decoration: none; display: inline-block; border: none; border-radius: 4px;}
+        .btn-logout { float: right; background-color: #6c757d; padding: 8px 15px; color: white; text-decoration: none; border-radius: 4px; font-size: 14px; }
 
-        /* Modal Edit (Pop-up) */
+        /* Modal Edit */
         .modal { display: none; position: fixed; z-index: 1; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); }
         .modal-content { background-color: white; margin: 5% auto; padding: 20px; border-radius: 8px; width: 500px; max-width: 90%; }
         .close { float: right; font-size: 28px; font-weight: bold; cursor: pointer; }
         .form-group { margin-bottom: 10px; }
         .form-group label { display: block; font-weight: bold; margin-bottom: 5px; }
-        .form-group input, .form-group select, .form-group textarea { width: 100%; padding: 8px; box-sizing: border-box; }
-        .btn-save { width: 100%; background-color: #007bff; color: white; padding: 10px; border: none; cursor: pointer; margin-top: 10px; }
+        .form-group input, .form-group select { width: 100%; padding: 8px; box-sizing: border-box; }
+        .btn-save { width: 100%; background-color: #007bff; color: white; padding: 10px; border: none; cursor: pointer; margin-top: 10px; border-radius: 4px;}
     </style>
 </head>
 <body>
 
-<div class="container">
-    <h2>Panel Pentadbir (Admin)</h2>
-    <button class="btn btn-refresh" onclick="muatNaikRekod()">Muat Semula Data</button>
-    <a href="dashboard.html" style="float:right; text-decoration:none; color:#007bff;">Kembali ke Dashboard</a>
-    
-    <div style="overflow-x: auto;">
-        <table id="admin-table">
-            <thead>
-                <tr>
-                    <th>Tarikh Hantar</th>
-                    <th>Nama</th>
-                    <th>Jenis</th>
-                    <th>Destinasi</th>
-                    <th>Tarikh Mula/Akhir</th>
-                    <th>Status</th>
-                    <th style="width: 120px;">Tindakan</th>
-                </tr>
-            </thead>
-            <tbody id="table-body">
-                </tbody>
-        </table>
+    <div id="login-overlay">
+        <div class="login-box">
+            <h3>Log Masuk Admin</h3>
+            <p>Sila masukkan kata laluan keselamatan.</p>
+            <input type="password" id="admin-password" placeholder="Kata Laluan">
+            <button onclick="semakPassword()">Masuk</button>
+            <p id="login-error" style="color: red; display: none; margin-top: 10px; font-size: 14px;">Kata laluan salah!</p>
+            <a href="index.html" style="display: block; margin-top: 15px; color: #666; text-decoration: none; font-size: 12px;">Kembali ke Laman Utama</a>
+        </div>
     </div>
-</div>
 
-<div id="editModal" class="modal">
-    <div class="modal-content">
-        <span class="close" onclick="tutupModal()">&times;</span>
-        <h3>Kemaskini Rekod</h3>
-        <form id="editForm">
-            <input type="hidden" id="edit_timestamp">
+    <div id="main-content">
+        <div class="container">
+            <button class="btn-logout" onclick="logout()">Log Keluar</button>
+            <h2>Panel Pentadbir (Admin)</h2>
             
-            <div class="form-group">
-                <label>Nama Staf:</label>
-                <input type="text" id="edit_nama" required>
+            <button class="btn-refresh" onclick="muatNaikRekod()">Muat Semula Data</button>
+            <a href="dashboard.html" class="btn-refresh" style="background-color: #17a2b8;">Lihat Dashboard</a>
+            
+            <div style="overflow-x: auto;">
+                <table id="admin-table">
+                    <thead>
+                        <tr>
+                            <th>Tarikh Hantar</th>
+                            <th>Nama</th>
+                            <th>Jenis</th>
+                            <th>Destinasi</th>
+                            <th>Tarikh Mula/Akhir</th>
+                            <th>Status</th>
+                            <th style="width: 130px;">Tindakan</th>
+                        </tr>
+                    </thead>
+                    <tbody id="table-body">
+                        </tbody>
+                </table>
             </div>
-            <div class="form-group">
-                <label>Jenis Pergerakan:</label>
-                <select id="edit_jenis">
-                    <option value="UR - Urusan Rasmi/Koperasi">UR - Urusan Rasmi</option>
-                    <option value="Kursus/Latihan">Kursus/Latihan</option>
-                    <option value="Bekerja Dari Rumah">Bekerja Dari Rumah</option>
-                    <option value="CR - Cuti Rehat">CR - Cuti Rehat</option>
-                    <option value="MC - Cuti Sakit">MC - Cuti Sakit</option>
-                    <option value="CG - Cuti Gantian">CG - Cuti Gantian</option>
-                </select>
-            </div>
-            <div class="form-group">
-                <label>Destinasi:</label>
-                <input type="text" id="edit_destinasi">
-            </div>
-            <div class="form-group">
-                <label>Status:</label>
-                <select id="edit_status">
-                    <option value="BARU">BARU</option>
-                    <option value="DILULUSKAN">DILULUSKAN</option>
-                    <option value="DITOLAK">DITOLAK</option>
-                </select>
-            </div>
-            <button type="submit" class="btn-save">Simpan Perubahan</button>
-        </form>
+        </div>
     </div>
-</div>
+
+    <div id="editModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="tutupModal()">&times;</span>
+            <h3>Kemaskini Rekod</h3>
+            <form id="editForm">
+                <input type="hidden" id="edit_timestamp">
+                
+                <div class="form-group">
+                    <label>Nama Staf:</label>
+                    <input type="text" id="edit_nama" required>
+                </div>
+                <div class="form-group">
+                    <label>Jenis Pergerakan:</label>
+                    <select id="edit_jenis">
+                        <option value="UR - Urusan Rasmi/Koperasi">UR - Urusan Rasmi</option>
+                        <option value="Kursus/Latihan">Kursus/Latihan</option>
+                        <option value="Bekerja Dari Rumah">Bekerja Dari Rumah</option>
+                        <option value="CR - Cuti Rehat">CR - Cuti Rehat</option>
+                        <option value="MC - Cuti Sakit">MC - Cuti Sakit</option>
+                        <option value="CG - Cuti Gantian">CG - Cuti Gantian</option>
+                        <option value="CK - Cuti Kuarantin">CK - Cuti Kuarantin</option>
+                        <option value="CB - Cuti Bersalin">CB - Cuti Bersalin</option>
+                        <option value="Kebenaran 4 Jam / HRMIS">Kebenaran 4 Jam</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Destinasi:</label>
+                    <input type="text" id="edit_destinasi">
+                </div>
+                <div class="form-group">
+                    <label>Status:</label>
+                    <select id="edit_status">
+                        <option value="BARU">BARU</option>
+                        <option value="DILULUSKAN">DILULUSKAN</option>
+                        <option value="DITOLAK">DITOLAK</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn-save">Simpan Perubahan</button>
+            </form>
+        </div>
+    </div>
 
 <script>
-    const API_URL = 'https://projek-skm-server.onrender.com'; // URL Server Anda
+    const API_URL = 'https://projek-skm-server.onrender.com';
+    
+    // ## KATA LALUAN ADMIN (Tukar di sini) ##
+    const ADMIN_PASS = "SKM2025"; 
+
+    // Fungsi Semak Password
+    function semakPassword() {
+        const input = document.getElementById('admin-password').value;
+        if (input === ADMIN_PASS) {
+            // Jika betul, simpan sesi dan tunjuk konten
+            sessionStorage.setItem('admin_auth', 'true');
+            tunjukKonten();
+        } else {
+            document.getElementById('login-error').style.display = 'block';
+        }
+    }
+
+    // Fungsi Tunjuk Konten
+    function tunjukKonten() {
+        document.getElementById('login-overlay').style.display = 'none';
+        document.getElementById('main-content').style.display = 'block';
+        muatNaikRekod(); // Muat data hanya selepas login
+    }
+
+    // Fungsi Logout
+    function logout() {
+        sessionStorage.removeItem('admin_auth');
+        location.reload(); // Refresh page untuk kunci balik
+    }
+
+    // Semak sesi bila page load (agar tak perlu login setiap kali refresh)
+    document.addEventListener('DOMContentLoaded', () => {
+        if (sessionStorage.getItem('admin_auth') === 'true') {
+            tunjukKonten();
+        }
+    });
+
+    // Benarkan tekan Enter untuk login
+    document.getElementById('admin-password').addEventListener('keypress', function (e) {
+        if (e.key === 'Enter') {
+            semakPassword();
+        }
+    });
 
     async function muatNaikRekod() {
         const tbody = document.getElementById('table-body');
-        tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;">Memuat turun...</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;">Memuat turun data...</td></tr>';
         
         try {
             const res = await fetch(`${API_URL}/get-rekod`);
             const data = await res.json();
             
-            tbody.innerHTML = ''; // Kosongkan
+            tbody.innerHTML = ''; 
             
+            // Paparkan rekod
             data.forEach(rekod => {
+                // Escape HTML untuk keselamatan
+                const escapeHTML = (str) => str ? String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;') : '';
+                
                 const row = `
                     <tr>
-                        <td>${(rekod.timestamp || '').split(',')[0]}</td>
-                        <td>${rekod.nama_staf}</td>
-                        <td>${rekod.jenis_pergerakan}</td>
-                        <td>${rekod.destinasi}</td>
-                        <td>${rekod.tarikh_mula} <br> ${rekod.tarikh_akhir}</td>
-                        <td>${rekod.status}</td>
+                        <td>${escapeHTML((rekod.timestamp || '').split(',')[0])}</td>
+                        <td>${escapeHTML(rekod.nama_staf)}</td>
+                        <td>${escapeHTML(rekod.jenis_pergerakan)}</td>
+                        <td>${escapeHTML(rekod.destinasi)}</td>
+                        <td>${escapeHTML(rekod.tarikh_mula)} <br> ${escapeHTML(rekod.tarikh_akhir)}</td>
+                        <td style="font-weight:bold; color:${rekod.status === 'BARU' ? 'green' : 'black'}">${escapeHTML(rekod.status)}</td>
                         <td>
-                            <button class="btn btn-edit" onclick='bukaModal(${JSON.stringify(rekod)})'>Edit</button>
+                            <button class="btn btn-edit" onclick='bukaModal(${JSON.stringify(rekod).replace(/'/g, "&#39;")})'>Edit</button>
                             <button class="btn btn-delete" onclick='padamRekod("${rekod.timestamp}")'>Hapus</button>
                         </td>
                     </tr>
@@ -128,12 +216,12 @@
                 tbody.innerHTML += row;
             });
         } catch (e) {
-            tbody.innerHTML = '<tr><td colspan="7" style="color:red;text-align:center;">Gagal memuat turun.</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="7" style="color:red;text-align:center;">Gagal memuat turun. Pastikan server berjalan.</td></tr>';
         }
     }
 
     async function padamRekod(timestamp) {
-        if(!confirm("Adakah anda pasti mahu memadam rekod ini?")) return;
+        if(!confirm("AMARAN: Adakah anda pasti mahu memadam rekod ini secara kekal?")) return;
         
         try {
             const res = await fetch(`${API_URL}/admin/delete`, {
@@ -143,7 +231,7 @@
             });
             const result = await res.json();
             if(result.success) {
-                alert("Rekod dipadam.");
+                alert("Rekod berjaya dipadam.");
                 muatNaikRekod();
             } else {
                 alert("Gagal: " + result.message);
@@ -172,6 +260,11 @@
         const destinasi = document.getElementById('edit_destinasi').value;
         const status = document.getElementById('edit_status').value;
 
+        // Tukar butang jadi loading
+        const btn = document.querySelector('.btn-save');
+        btn.textContent = "Menyimpan...";
+        btn.disabled = true;
+
         try {
             const res = await fetch(`${API_URL}/admin/update`, {
                 method: 'POST',
@@ -193,10 +286,10 @@
                 alert("Gagal: " + result.message);
             }
         } catch(e) { alert("Ralat server."); }
+        
+        btn.textContent = "Simpan Perubahan";
+        btn.disabled = false;
     });
-
-    // Mula
-    muatNaikRekod();
 </script>
 
 </body>
