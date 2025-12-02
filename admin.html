@@ -3,25 +3,26 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Portal V3.0 - SKM</title>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script> <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"> <style>
+    <title>Admin Portal V3.1 - SKM</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+    <style>
+        /* GAYA CSS KEKAL SAMA */
         :root { --primary: #2c3e50; --secondary: #34495e; --accent: #3498db; --light: #ecf0f1; --danger: #e74c3c; --success: #27ae60; }
         body { margin: 0; font-family: 'Segoe UI', sans-serif; background: #f4f6f9; display: flex; height: 100vh; overflow: hidden; }
         
-        /* LOGIN SCREEN */
         #login-screen { position: fixed; top:0; left:0; width:100%; height:100%; background: var(--primary); z-index: 9999; display: flex; justify-content: center; align-items: center; }
         .login-box { background: white; padding: 40px; border-radius: 10px; width: 350px; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.2); }
         .login-box input { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #ddd; border-radius: 5px; }
         .login-box button { width: 100%; padding: 12px; background: var(--accent); color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; }
         
-        /* SIDEBAR */
         .sidebar { width: 250px; background: var(--primary); color: white; display: flex; flex-direction: column; transition: 0.3s; }
         .sidebar-header { padding: 20px; text-align: center; border-bottom: 1px solid rgba(255,255,255,0.1); }
         .sidebar-menu a { display: block; padding: 15px 20px; color: #bdc3c7; text-decoration: none; transition: 0.3s; border-left: 4px solid transparent; cursor: pointer;}
         .sidebar-menu a:hover, .sidebar-menu a.active { background: var(--secondary); color: white; border-left-color: var(--accent); }
         .sidebar-menu a i { margin-right: 10px; width: 20px; }
         
-        /* MAIN CONTENT */
         .main-content { flex: 1; overflow-y: auto; padding: 20px; }
         .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
         .card-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; margin-bottom: 20px; }
@@ -30,22 +31,27 @@
         .card p { margin: 0; color: #7f8c8d; }
         .card-icon { font-size: 2.5em; opacity: 0.2; }
 
-        /* SECTIONS */
         .section { display: none; animation: fadeIn 0.3s; }
         .section.active { display: block; }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
-        /* TABLES */
         table { width: 100%; border-collapse: collapse; background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
-        th, td { padding: 12px 15px; text-align: left; border-bottom: 1px solid #eee; }
+        th, td { padding: 12px 15px; text-align: left; border-bottom: 1px solid #eee; font-size: 13px; }
         th { background: var(--secondary); color: white; font-weight: 600; }
         
-        /* FORMS & INPUTS */
-        .form-control { display: block; width: 100%; padding: 10px; margin-bottom: 15px; border: 1px solid #ddd; border-radius: 5px; }
-        .btn { padding: 8px 15px; border: none; border-radius: 5px; cursor: pointer; color: white; font-size: 14px; }
+        .form-control { display: block; width: 100%; padding: 8px; margin-bottom: 10px; border: 1px solid #ddd; border-radius: 5px; box-sizing: border-box; }
+        .btn { padding: 6px 12px; border: none; border-radius: 4px; cursor: pointer; color: white; font-size: 12px; margin-right: 5px; }
         .btn-primary { background: var(--accent); }
         .btn-danger { background: var(--danger); }
         .btn-success { background: var(--success); }
+
+        /* Modal Edit Besar */
+        .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); overflow-y: auto; }
+        .modal-content { background-color: white; margin: 2% auto; padding: 20px; border-radius: 8px; width: 600px; max-width: 95%; }
+        .close { float: right; font-size: 28px; font-weight: bold; cursor: pointer; }
+        .form-row { display: flex; gap: 10px; }
+        .form-group { margin-bottom: 10px; flex: 1; }
+        .form-group label { display: block; font-weight: bold; margin-bottom: 5px; font-size: 12px; color: #555; }
     </style>
 </head>
 <body>
@@ -82,44 +88,24 @@
                 <h2><i class="fas fa-tachometer-alt"></i> Papan Pemuka</h2>
                 <button class="btn btn-success" onclick="loadData()">Muat Semula Data</button>
             </div>
-            
             <div class="card-grid">
-                <div class="card">
-                    <div><h3 id="stat-total">0</h3><p>Jumlah Permohonan</p></div>
-                    <i class="fas fa-file-alt card-icon" style="color: var(--accent);"></i>
-                </div>
-                <div class="card">
-                    <div><h3 id="stat-today">0</h3><p>Permohonan Hari Ini</p></div>
-                    <i class="fas fa-calendar-day card-icon" style="color: var(--success);"></i>
-                </div>
-                <div class="card">
-                    <div><h3 id="stat-staff">0</h3><p>Staf Aktif (Bulan Ini)</p></div>
-                    <i class="fas fa-users card-icon" style="color: #f39c12;"></i>
-                </div>
+                <div class="card"><div><h3 id="stat-total">0</h3><p>Jumlah Permohonan</p></div><i class="fas fa-file-alt card-icon" style="color: var(--accent);"></i></div>
+                <div class="card"><div><h3 id="stat-today">0</h3><p>Permohonan Hari Ini</p></div><i class="fas fa-calendar-day card-icon" style="color: var(--success);"></i></div>
+                <div class="card"><div><h3 id="stat-staff">0</h3><p>Staf Aktif</p></div><i class="fas fa-users card-icon" style="color: #f39c12;"></i></div>
             </div>
-
             <div style="background: white; padding: 20px; border-radius: 8px;">
-                <h3>🏆 Top 5 Kakitangan Paling Aktif</h3>
-                <table id="top-staff-table">
-                    <thead><tr><th>Nama</th><th>Jumlah Pergerakan</th><th>Lokasi Terakhir</th></tr></thead>
-                    <tbody></tbody>
-                </table>
+                <h3>🏆 Top 5 Kakitangan Aktif</h3>
+                <table id="top-staff-table"><thead><tr><th>Nama</th><th>Jumlah</th></tr></thead><tbody></tbody></table>
             </div>
         </div>
 
         <div id="sec-records" class="section">
-            <div class="header">
-                <h2><i class="fas fa-list"></i> Pengurusan Rekod</h2>
-                <div>
-                    <button class="btn btn-primary" onclick="exportToCSV()">Eksport CSV</button>
-                </div>
-            </div>
+            <div class="header"><h2><i class="fas fa-list"></i> Pengurusan Rekod</h2>
+            <div><button class="btn btn-primary" onclick="exportToCSV()">Eksport CSV</button></div></div>
             <input type="text" id="search-records" class="form-control" placeholder="Cari nama, destinasi..." onkeyup="filterTable()">
             <div style="overflow-x: auto;">
                 <table id="records-table">
-                    <thead>
-                        <tr><th>Masa</th><th>Nama</th><th>Jenis</th><th>Destinasi</th><th>Tindakan</th></tr>
-                    </thead>
+                    <thead><tr><th>Tarikh Hantar</th><th>Nama</th><th>Jenis</th><th>Destinasi</th><th>Masa/Tarikh</th><th>Status</th><th>Tindakan</th></tr></thead>
                     <tbody></tbody>
                 </table>
             </div>
@@ -128,61 +114,106 @@
         <div id="sec-analytics" class="section">
             <h2><i class="fas fa-chart-line"></i> Analisis Individu</h2>
             <div style="background: white; padding: 20px; border-radius: 8px; display: flex; gap: 10px; margin-bottom: 20px;">
-                <select id="analisis-nama" class="form-control" style="margin:0; width: auto; flex: 1;">
-                    <option value="">-- Pilih Nama Staf --</option>
-                </select>
+                <select id="analisis-nama" class="form-control" style="margin:0; flex: 1;"><option value="">-- Pilih Nama Staf --</option></select>
                 <button class="btn btn-primary" onclick="analisisStaf()">Lihat Rekod</button>
             </div>
             <div id="analisis-result" style="background: white; padding: 20px; border-radius: 8px; display: none;">
-                <h3 id="analisis-title"></h3>
-                <p>Jumlah Pergerakan: <strong id="analisis-total"></strong></p>
-                <table id="analisis-table">
-                    <thead><tr><th>Tarikh</th><th>Tujuan</th><th>Destinasi</th></tr></thead>
-                    <tbody></tbody>
-                </table>
+                <h3 id="analisis-title"></h3><p>Jumlah: <strong id="analisis-total"></strong></p>
+                <table id="analisis-table"><thead><tr><th>Tarikh</th><th>Tujuan</th><th>Destinasi</th></tr></thead><tbody></tbody></table>
             </div>
         </div>
 
         <div id="sec-profile" class="section">
             <h2><i class="fas fa-user-cog"></i> Tetapan Profil</h2>
             <div style="background: white; padding: 30px; border-radius: 8px; max-width: 500px;">
-                <label>Username (Tidak boleh ubah)</label>
-                <input type="text" id="prof-user" class="form-control" disabled>
-                <label>Nama Penuh</label>
-                <input type="text" id="prof-nama" class="form-control">
-                <label>Kata Laluan Baru (Biarkan kosong jika tidak tukar)</label>
-                <input type="password" id="prof-pass" class="form-control" placeholder="******">
-                <button class="btn btn-primary" onclick="updateProfile()">Simpan Perubahan</button>
+                <label>Username</label><input type="text" id="prof-user" class="form-control" disabled>
+                <label>Nama Penuh</label><input type="text" id="prof-nama" class="form-control">
+                <label>Kata Laluan Baru</label><input type="password" id="prof-pass" class="form-control" placeholder="******">
+                <button class="btn btn-primary" onclick="updateProfile()">Simpan</button>
             </div>
         </div>
+    </div>
 
+    <div id="editModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="tutupModal()">&times;</span>
+            <h3 style="margin-top:0;">Kemaskini Rekod (Admin)</h3>
+            <form id="editForm">
+                <input type="hidden" id="edit_timestamp">
+                
+                <div class="form-group"><label>Nama Staf:</label><input type="text" id="edit_nama" class="form-control" required></div>
+                <div class="form-group"><label>Jenis Pergerakan:</label>
+                    <select id="edit_jenis" class="form-control">
+                        <option value="UR - Urusan Rasmi/Koperasi">UR - Urusan Rasmi</option>
+                        <option value="Kursus/Latihan">Kursus/Latihan</option>
+                        <option value="Bekerja Dari Rumah">Bekerja Dari Rumah</option>
+                        <option value="CR - Cuti Rehat">CR - Cuti Rehat</option>
+                        <option value="MC - Cuti Sakit">MC - Cuti Sakit</option>
+                        <option value="CG - Cuti Gantian">CG - Cuti Gantian</option>
+                        <option value="CK - Cuti Kuarantin">CK - Cuti Kuarantin</option>
+                        <option value="CB - Cuti Bersalin">CB - Cuti Bersalin</option>
+                        <option value="Kebenaran 4 Jam / HRMIS">Kebenaran 4 Jam</option>
+                    </select>
+                </div>
+                <div class="form-group"><label>Destinasi:</label><input type="text" id="edit_destinasi" class="form-control"></div>
+                
+                <div class="form-row">
+                    <div class="form-group"><label>Masa Mula:</label><input type="time" id="edit_masa_mula" class="form-control"></div>
+                    <div class="form-group"><label>Masa Tamat:</label><input type="time" id="edit_masa_tamat" class="form-control"></div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group"><label>Tarikh Mula:</label><input type="date" id="edit_tarikh_mula" class="form-control"></div>
+                    <div class="form-group"><label>Tarikh Akhir:</label><input type="date" id="edit_tarikh_akhir" class="form-control"></div>
+                </div>
+
+                <div class="form-group"><label>Tempat Bertugas:</label>
+                    <select id="edit_tempat" class="form-control">
+                        <option value="SKM Negeri Sabah">SKM Negeri Sabah</option>
+                        <option value="SKM Wilayah PBS">SKM Wilayah PBS</option>
+                        <option value="SKM Wilayah PBU">SKM Wilayah PBU</option>
+                        <option value="SKM W.P Labuan">SKM W.P Labuan</option>
+                        <option value="SKM Wilayah Beaufort">SKM Wilayah Beaufort</option>
+                        <option value="SKM Wilayah Keningau">SKM Wilayah Keningau</option>
+                        <option value="SKM Wilayah Ranau">SKM Wilayah Ranau</option>
+                        <option value="SKM Wilayah Kota Marudu">SKM Wilayah Kota Marudu</option>
+                        <option value="SKM Wilayah Kudat">SKM Wilayah Kudat</option>
+                        <option value="SKM Wilayah Sandakan">SKM Wilayah Sandakan</option>
+                        <option value="SKM Wilayah Lahad Datu">SKM Wilayah Lahad Datu</option>
+                        <option value="SKM Wilayah Tawau">SKM Wilayah Tawau</option>
+                    </select>
+                </div>
+
+                <div class="form-group"><label>Tujuan:</label><textarea id="edit_tujuan" class="form-control" rows="2"></textarea></div>
+                <div class="form-group"><label>Status:</label>
+                    <select id="edit_status" class="form-control">
+                        <option value="BARU">BARU</option>
+                        <option value="DILULUSKAN">DILULUSKAN</option>
+                        <option value="DITOLAK">DITOLAK</option>
+                    </select>
+                </div>
+                
+                <button type="submit" class="btn btn-primary" style="width:100%; padding:10px; font-size:16px;">Simpan Perubahan</button>
+            </form>
+        </div>
     </div>
 
 <script>
     const API_URL = 'https://projek-skm-server.onrender.com';
     let allData = [];
-    let currentUser = null;
 
-    // --- AUTHENTICATION ---
     async function login() {
         const u = document.getElementById('login-user').value;
         const p = document.getElementById('login-pass').value;
-        const btn = document.querySelector('#login-box button');
-        
         try {
             const res = await fetch(`${API_URL}/admin/login`, {
-                method: 'POST', headers: {'Content-Type':'application/json'},
-                body: JSON.stringify({username: u, password: p})
+                method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({username: u, password: p})
             });
             const data = await res.json();
-            
             if(data.success) {
-                currentUser = data.user;
-                sessionStorage.setItem('admin_user', JSON.stringify(currentUser));
+                sessionStorage.setItem('admin_user', JSON.stringify(data.user));
                 initAdmin();
-            } else {
-                document.getElementById('login-msg').innerText = data.message;
-            }
+            } else { document.getElementById('login-msg').innerText = data.message; }
         } catch(e) { alert("Ralat sambungan."); }
     }
 
@@ -190,157 +221,136 @@
         document.getElementById('login-screen').style.display = 'none';
         document.getElementById('sidebar').style.display = 'flex';
         document.getElementById('main-content').style.display = 'block';
-        
         const user = JSON.parse(sessionStorage.getItem('admin_user'));
         document.getElementById('admin-name-display').innerText = user.nama + " (" + user.jawatan + ")";
         document.getElementById('prof-user').value = user.username;
         document.getElementById('prof-nama').value = user.nama;
-        
         loadData();
     }
 
-    function logout() {
-        sessionStorage.removeItem('admin_user');
-        location.reload();
-    }
+    function logout() { sessionStorage.removeItem('admin_user'); location.reload(); }
 
-    // --- DATA LOADING ---
     async function loadData() {
         try {
             const res = await fetch(`${API_URL}/get-rekod`);
             allData = await res.json();
-            
             renderDashboard();
             renderRecordsTable();
             populateStaffDropdown();
         } catch(e) { console.error(e); }
     }
 
-    // --- RENDER SECTIONS ---
-    function renderDashboard() {
-        // Stats Cards
-        document.getElementById('stat-total').innerText = allData.length;
-        
-        const today = new Date().toISOString().split('T')[0];
-        const todayCount = allData.filter(r => (r.tarikh_mula || '').includes(today)).length;
-        document.getElementById('stat-today').innerText = todayCount;
-
-        // Leaderboard Logic
-        const staffCount = {};
-        allData.forEach(r => {
-            if(r.nama_staf) staffCount[r.nama_staf] = (staffCount[r.nama_staf] || 0) + 1;
-        });
-        document.getElementById('stat-staff').innerText = Object.keys(staffCount).length;
-
-        // Sort leaderboard
-        const sortedStaff = Object.entries(staffCount).sort((a,b) => b[1] - a[1]).slice(0, 5);
-        
-        const tbody = document.querySelector('#top-staff-table tbody');
-        tbody.innerHTML = '';
-        sortedStaff.forEach(([name, count]) => {
-            tbody.innerHTML += `<tr><td>${name}</td><td>${count}</td><td>-</td></tr>`;
-        });
-    }
-
     function renderRecordsTable() {
         const tbody = document.querySelector('#records-table tbody');
         tbody.innerHTML = '';
         allData.forEach(r => {
+            // Format paparan masa/tarikh
+            let masaInfo = `${r.tarikh_mula}`;
+            if(r.masa_mula && r.masa_tamat) masaInfo += `<br><small>${r.masa_mula} - ${r.masa_tamat}</small>`;
+            
             tbody.innerHTML += `
                 <tr>
                     <td>${(r.timestamp||'').split(',')[0]}</td>
                     <td>${r.nama_staf}</td>
                     <td>${r.jenis_pergerakan}</td>
                     <td>${r.destinasi}</td>
-                    <td><button class="btn btn-danger" onclick="deleteRecord('${r.timestamp}')">Hapus</button></td>
+                    <td>${masaInfo}</td>
+                    <td style="font-weight:bold; color:${r.status === 'BARU' ? 'green' : 'black'}">${r.status}</td>
+                    <td>
+                        <button class="btn btn-edit" onclick='bukaModal(${JSON.stringify(r).replace(/'/g, "&#39;")})'>Edit</button>
+                        <button class="btn btn-delete" onclick='padamRekod("${r.timestamp}")'>Hapus</button>
+                    </td>
                 </tr>`;
         });
     }
 
-    function populateStaffDropdown() {
-        const uniqueNames = [...new Set(allData.map(item => item.nama_staf))].sort();
-        const select = document.getElementById('analisis-nama');
-        select.innerHTML = '<option value="">-- Pilih Nama Staf --</option>';
-        uniqueNames.forEach(name => {
-            if(name) select.innerHTML += `<option value="${name}">${name}</option>`;
-        });
-    }
-
-    // --- FEATURES ---
-    function analisisStaf() {
-        const nama = document.getElementById('analisis-nama').value;
-        if(!nama) return;
+    // Helper: Tukar "2:30 PM" ke "14:30" untuk input type="time"
+    function convertTimeForInput(timeStr) {
+        if (!timeStr) return '';
+        // Jika sudah format 24h (e.g. 14:30), return terus
+        if (timeStr.includes(':') && !timeStr.toUpperCase().includes('M')) return timeStr;
         
-        const records = allData.filter(r => r.nama_staf === nama);
-        document.getElementById('analisis-result').style.display = 'block';
-        document.getElementById('analisis-title').innerText = "Rekod: " + nama;
-        document.getElementById('analisis-total').innerText = records.length + " Pergerakan";
-        
-        const tbody = document.querySelector('#analisis-table tbody');
-        tbody.innerHTML = '';
-        records.forEach(r => {
-            tbody.innerHTML += `<tr><td>${r.tarikh_mula}</td><td>${r.tujuan}</td><td>${r.destinasi}</td></tr>`;
-        });
-    }
-
-    async function updateProfile() {
-        const user = JSON.parse(sessionStorage.getItem('admin_user'));
-        const newName = document.getElementById('prof-nama').value;
-        const newPass = document.getElementById('prof-pass').value;
-        
-        const body = { username: user.username, new_nama: newName };
-        if(newPass) body.new_password = newPass;
-        
-        const res = await fetch(`${API_URL}/admin/update-profile`, {
-            method: 'POST', headers: {'Content-Type':'application/json'},
-            body: JSON.stringify(body)
-        });
-        const data = await res.json();
-        if(data.success) alert("Profil dikemaskini. Sila login semula.");
-        else alert("Gagal.");
-    }
-
-    function deleteRecord(ts) {
-        if(confirm("Padam rekod ini?")) {
-            fetch(`${API_URL}/admin/delete`, {
-                method: 'POST', headers: {'Content-Type':'application/json'},
-                body: JSON.stringify({timestamp: ts})
-            }).then(() => loadData());
+        const match = timeStr.match(/(\d+):(\d+)(?:\s*)(AM|PM)/i);
+        if (match) {
+            let hours = parseInt(match[1]);
+            const minutes = match[2];
+            const ampm = match[3].toUpperCase();
+            if (ampm === 'PM' && hours !== 12) hours += 12;
+            if (ampm === 'AM' && hours === 12) hours = 0;
+            return `${String(hours).padStart(2, '0')}:${minutes}`;
         }
+        return '';
     }
 
-    function exportToCSV() {
-        let csvContent = "data:text/csv;charset=utf-8,";
-        csvContent += "Timestamp,Nama,Jenis,Destinasi,Tarikh Mula,Tarikh Akhir\n";
-        allData.forEach(row => {
-            csvContent += `${row.timestamp},${row.nama_staf},${row.jenis_pergerakan},${row.destinasi},${row.tarikh_mula},${row.tarikh_akhir}\n`;
-        });
-        const encodedUri = encodeURI(csvContent);
-        const link = document.createElement("a");
-        link.setAttribute("href", encodedUri);
-        link.setAttribute("download", "rekod_pergerakan.csv");
-        document.body.appendChild(link);
-        link.click();
+    function bukaModal(rekod) {
+        document.getElementById('edit_timestamp').value = rekod.timestamp;
+        document.getElementById('edit_nama').value = rekod.nama_staf;
+        document.getElementById('edit_jenis').value = rekod.jenis_pergerakan;
+        document.getElementById('edit_destinasi').value = rekod.destinasi;
+        
+        // Masukkan nilai Masa & Tarikh yang telah diproses
+        document.getElementById('edit_masa_mula').value = convertTimeForInput(rekod.masa_mula);
+        document.getElementById('edit_masa_tamat').value = convertTimeForInput(rekod.masa_tamat);
+        document.getElementById('edit_tarikh_mula').value = rekod.tarikh_mula;
+        document.getElementById('edit_tarikh_akhir').value = rekod.tarikh_akhir;
+        
+        document.getElementById('edit_tempat').value = rekod.tempat_bertugas;
+        document.getElementById('edit_tujuan').value = rekod.tujuan;
+        document.getElementById('edit_status').value = rekod.status;
+        document.getElementById('editModal').style.display = "block";
     }
 
-    function showSection(id) {
-        document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
-        document.querySelectorAll('.sidebar-menu a').forEach(a => a.classList.remove('active'));
-        document.getElementById('sec-' + id).classList.add('active');
-        document.getElementById('link-' + id).classList.add('active');
-    }
+    function tutupModal() { document.getElementById('editModal').style.display = "none"; }
+
+    document.getElementById('editForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const btn = e.target.querySelector('button');
+        btn.textContent = "Menyimpan..."; btn.disabled = true;
+
+        const body = { 
+            original_timestamp: document.getElementById('edit_timestamp').value,
+            nama_staf: document.getElementById('edit_nama').value,
+            jenis_pergerakan: document.getElementById('edit_jenis').value,
+            destinasi: document.getElementById('edit_destinasi').value,
+            masa_mula: document.getElementById('edit_masa_mula').value, // Data Masa
+            masa_tamat: document.getElementById('edit_masa_tamat').value, // Data Masa
+            tarikh_mula: document.getElementById('edit_tarikh_mula').value,
+            tarikh_akhir: document.getElementById('edit_tarikh_akhir').value,
+            tempat_bertugas: document.getElementById('edit_tempat').value,
+            tujuan: document.getElementById('edit_tujuan').value,
+            status: document.getElementById('edit_status').value
+        };
+
+        try {
+            const res = await fetch(`${API_URL}/admin/update`, {
+                method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body)
+            });
+            const result = await res.json();
+            if(result.success) { alert("Berjaya dikemaskini!"); tutupModal(); muatNaikRekod(); } 
+            else { alert("Gagal: " + result.message); }
+        } catch(e) { alert("Ralat server."); }
+        btn.textContent = "Simpan Perubahan"; btn.disabled = false;
+    });
     
-    function filterTable() {
-        const term = document.getElementById('search-records').value.toLowerCase();
-        const rows = document.querySelectorAll('#records-table tbody tr');
-        rows.forEach(row => {
-            const text = row.innerText.toLowerCase();
-            row.style.display = text.includes(term) ? '' : 'none';
-        });
+    // Fungsi lain (Analitik, Delete, Export) kekal sama seperti V3.0...
+    function renderDashboard() {
+        document.getElementById('stat-total').innerText = allData.length;
+        const today = new Date().toISOString().split('T')[0];
+        document.getElementById('stat-today').innerText = allData.filter(r => (r.tarikh_mula||'').includes(today)).length;
+        const staffCount = {}; allData.forEach(r => { if(r.nama_staf) staffCount[r.nama_staf] = (staffCount[r.nama_staf] || 0) + 1; });
+        document.getElementById('stat-staff').innerText = Object.keys(staffCount).length;
+        const sortedStaff = Object.entries(staffCount).sort((a,b) => b[1] - a[1]).slice(0, 5);
+        const tbody = document.querySelector('#top-staff-table tbody'); tbody.innerHTML = '';
+        sortedStaff.forEach(([name, count]) => tbody.innerHTML += `<tr><td>${name}</td><td>${count}</td></tr>`);
     }
-
-    // Auto login check
+    async function padamRekod(ts) { if(confirm("Padam?")) fetch(`${API_URL}/admin/delete`, {method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({timestamp: ts})}).then(() => loadData()); }
+    function filterTable() { const term = document.getElementById('search-records').value.toLowerCase(); document.querySelectorAll('#records-table tbody tr').forEach(row => row.style.display = row.innerText.toLowerCase().includes(term) ? '' : 'none'); }
+    function populateStaffDropdown() { const uniqueNames = [...new Set(allData.map(item => item.nama_staf))].sort(); const select = document.getElementById('analisis-nama'); select.innerHTML = '<option value="">-- Pilih Nama Staf --</option>'; uniqueNames.forEach(name => select.innerHTML += `<option value="${name}">${name}</option>`); }
+    function analisisStaf() { const nama = document.getElementById('analisis-nama').value; if(!nama) return; const records = allData.filter(r => r.nama_staf === nama); document.getElementById('analisis-result').style.display = 'block'; document.getElementById('analisis-title').innerText = "Rekod: " + nama; document.getElementById('analisis-total').innerText = records.length + " Pergerakan"; const tbody = document.querySelector('#analisis-table tbody'); tbody.innerHTML = ''; records.forEach(r => tbody.innerHTML += `<tr><td>${r.tarikh_mula}</td><td>${r.tujuan}</td><td>${r.destinasi}</td></tr>`); }
+    function exportToCSV() { let csv = "Timestamp,Nama,Jenis,Destinasi,TarikhMula,TarikhAkhir\n"; allData.forEach(r => csv += `${r.timestamp},${r.nama_staf},${r.jenis_pergerakan},${r.destinasi},${r.tarikh_mula},${r.tarikh_akhir}\n`); const link = document.createElement("a"); link.href = encodeURI("data:text/csv;charset=utf-8," + csv); link.download = "rekod.csv"; link.click(); }
+    function showSection(id) { document.querySelectorAll('.section').forEach(s => s.classList.remove('active')); document.querySelectorAll('.sidebar-menu a').forEach(a => a.classList.remove('active')); document.getElementById('sec-' + id).classList.add('active'); document.getElementById('link-' + id).classList.add('active'); }
     if(sessionStorage.getItem('admin_user')) initAdmin();
 </script>
+
 </body>
 </html>
