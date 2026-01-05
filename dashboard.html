@@ -344,7 +344,7 @@
             return `${jamInt}:${minit} ${ampm}`;
         }
 
-        // ## LOGIK CARTA DENGAN TAPISAN BULAN/TAHUN ##
+        // ## LOGIK CARTA YANG DIBIAIKI ##
         function kemaskiniCarta(data) {
             const selectedMonth = chartMonthInput.value;
             const selectedYear = chartYearInput.value;
@@ -352,13 +352,29 @@
             // Tapis data untuk carta berdasarkan bulan & tahun yang dipilih (menggunakan tarikh_mula)
             const chartData = data.filter(rekod => {
                 if (!rekod.tarikh_mula) return false;
-                // tarikh_mula format: YYYY-MM-DD
-                const parts = rekod.tarikh_mula.split('-');
-                if (parts.length !== 3) return false;
                 
-                const recYear = parts[0];
-                const recMonth = parts[1];
-                
+                // PEMBAIKAN: Baca kedua-dua format YYYY-MM-DD dan DD/MM/YYYY
+                let recYear, recMonth;
+
+                // Jika format YYYY-MM-DD (Default)
+                if (rekod.tarikh_mula.includes('-')) {
+                    const parts = rekod.tarikh_mula.split('-');
+                    if (parts.length === 3) {
+                        recYear = parts[0];
+                        recMonth = parts[1];
+                    }
+                } 
+                // Jika format DD/MM/YYYY (Dari getDisplayValues)
+                else if (rekod.tarikh_mula.includes('/')) {
+                    const parts = rekod.tarikh_mula.split('/');
+                    if (parts.length === 3) {
+                        recYear = parts[2]; // Tahun di belakang
+                        recMonth = parts[1]; // Bulan di tengah
+                    }
+                }
+
+                if (!recYear || !recMonth) return false; // Abaikan jika format tak dikenali
+
                 const yearMatch = (recYear === selectedYear);
                 const monthMatch = (selectedMonth === 'all') || (recMonth === selectedMonth);
                 
@@ -426,7 +442,7 @@
             });
         }
 
-        // ## KEMASKINI: FUNGSI MUAT NAIK REKOD (DENGAN TAHUN) ##
+        // ## KEMASKINI: FUNGSI MUAT NAIK REKOD (DENGAN AUTO-SYNC CHART) ##
         async function muatNaikRekod() {
              loadingElement.style.display = 'block';
              rekodContainer.innerHTML = '<p id="loading">Memuat turun rekod...</p>'; 
@@ -448,6 +464,11 @@
                     rekodContainer.innerHTML = `<p style="text-align:center; color:red; padding: 20px;">Tiada rekod arkib ditemui untuk tahun ${selectedYear}.</p>`;
                     loadingElement.style.display = 'none';
                     return;
+                }
+
+                // ** AUTO-SYNC: Setkan Filter Chart ke Tahun yang dipilih **
+                if (chartYearInput) {
+                     chartYearInput.value = selectedYear;
                 }
 
                 // Logik Sort (Kekalkan logik asal yang kuat)
