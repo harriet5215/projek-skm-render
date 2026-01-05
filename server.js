@@ -29,12 +29,22 @@ app.post('/submit-mohon', async (req, res) => {
     } catch (error) { res.status(500).json({ success: false, error: error.message }); }
 });
 
+// --- API UNTUK MENDAPATKAN REKOD (DIKEMASKINI: Support ?year=202X) ---
 app.get('/get-rekod', async (req, res) => {
-    if (!APPS_SCRIPT_URL) return res.status(500).json({ message: 'Config Error' });
+    if (!APPS_SCRIPT_URL) return res.status(500).json({ message: 'URL Apps Script tidak ditetapkan.' });
+    
     try {
-        const response = await axios.get(APPS_SCRIPT_URL);
-        res.json(response.data);
-    } catch (error) { res.status(500).json({ message: "Error fetching records" }); }
+        // Ambil tahun dari request frontend (jika ada)
+        const year = req.query.year || ''; 
+        
+        // Hantar request ke Apps Script dengan parameter tahun
+        const response = await axios.get(`${APPS_SCRIPT_URL}?year=${year}`);
+        
+        res.status(200).json(response.data);
+    } catch (error) {
+        console.error("Ralat get-rekod:", error.message);
+        res.status(500).json({ message: "Gagal mengambil rekod." });
+    }
 });
 
 // --- API UNTUK ADMIN ---
@@ -52,6 +62,17 @@ app.post('/admin/delete', async (req, res) => {
         const params = new URLSearchParams();
         params.append('action', 'delete');
         params.append('original_timestamp', req.body.timestamp);
+        const response = await axios.post(APPS_SCRIPT_URL, params);
+        res.json(response.data);
+    } catch (error) { res.status(500).json({ success: false }); }
+});
+
+// PENTING: Laluan ini diperlukan untuk fungsi Edit/Kemaskini berfungsi
+app.post('/admin/update', async (req, res) => {
+    try {
+        const params = new URLSearchParams();
+        params.append('action', 'update');
+        Object.keys(req.body).forEach(key => params.append(key, req.body[key]));
         const response = await axios.post(APPS_SCRIPT_URL, params);
         res.json(response.data);
     } catch (error) { res.status(500).json({ success: false }); }
