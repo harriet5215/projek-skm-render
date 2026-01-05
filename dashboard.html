@@ -110,6 +110,9 @@
             body { background-color: #fff; padding: 0; font-size: 9pt; font-family: "Times New Roman", serif; }
             .container { box-shadow: none; border: 0; width: 100% !important; max-width: none !important; padding: 0; margin: 0; }
             .controls-container, .chart-controls, .analytics-container, .nav-link, #pagination-controls, footer, h2 { display: none !important; } /* Sembunyikan chart masa print */
+            /* Sembunyikan juga filter tahun baru masa print */
+            #year-selection-container { display: none !important; }
+            
             .print-header { display: block; text-align: center; margin-bottom: 20px; }
             .print-header h1 { font-size: 16pt; margin: 0; text-transform: uppercase; color: #000; }
             .print-header p { font-size: 10pt; margin: 5px 0 0 0; color: #555; }
@@ -134,6 +137,13 @@
         </div>
 
         <h2>Dashboard Rekod Pergerakan Staf</h2>
+        
+        <div id="year-selection-container" style="background: #e3f2fd; padding: 15px; border-radius: 8px; margin-bottom: 20px; border: 1px solid #90caf9; display: flex; align-items: center; gap: 15px;">
+            <label for="filter-tahun-data" style="font-weight: bold; color: #0d47a1;">📂 Pilih Tahun Rekod:</label>
+            <select id="filter-tahun-data" style="max-width: 150px; padding: 8px;">
+                </select>
+            <span style="font-size: 0.9em; color: #555;">(Pilih tahun lepas untuk melihat Arkib)</span>
+        </div>
         
         <div class="chart-controls">
             <h4>🗓️ Tapis Statistik:</h4>
@@ -248,6 +258,9 @@
         const chartYearInput = document.getElementById('chart-year');
         const updateChartBtn = document.getElementById('update-chart-btn');
         
+        // Elemen Filter Tahun Data (BARU)
+        const tahunDataInput = document.getElementById('filter-tahun-data');
+
         let semuaRekod = [];
         let rekodYangDitapis = [];
         let currentPage = 1;
@@ -258,8 +271,20 @@
 
         document.getElementById('tarikh-cetak').innerText = new Date().toLocaleDateString('ms-MY', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
 
-        // Setup Pilihan Tahun (Tahun semasa +/- 2 tahun)
+        // Dapatkan tahun semasa
         const currentYear = new Date().getFullYear();
+
+        // 1. Setup Dropdown Tahun Data (Sumber Data: Semasa vs Arkib)
+        // Paparkan 4 tahun kebelakang (Contoh: 2026, 2025, 2024, 2023)
+        for (let i = 0; i < 4; i++) {
+            let year = currentYear - i;
+            let option = document.createElement('option');
+            option.value = year;
+            option.text = year + (year === currentYear ? " (Semasa)" : " (Arkib)");
+            tahunDataInput.appendChild(option);
+        }
+
+        // 2. Setup Dropdown Tahun untuk Filter Carta (Grafik sahaja)
         const startYear = currentYear - 2;
         const endYear = currentYear + 2;
         for (let i = startYear; i <= endYear; i++) {
@@ -274,7 +299,7 @@
         const currentMonth = String(new Date().getMonth() + 1).padStart(2, '0');
         chartMonthInput.value = currentMonth;
 
-        function parseTimestampToUTCMillis(timestampStr) { /* ... (sama) ... */
+        function parseTimestampToUTCMillis(timestampStr) {
              if (!timestampStr || typeof timestampStr !== 'string') return null;
              const parts = timestampStr.split(','); if (parts.length < 1) return null;
              const datePart = parts[0].trim(); const timePart = parts[1] ? parts[1].trim() : '00:00:00';
@@ -297,7 +322,7 @@
             const millis = parseTimestampToUTCMillis(timestampStr); if (!millis) return ''; 
              const dateObj = new Date(millis); const year = dateObj.getUTCFullYear(); const month = String(dateObj.getUTCMonth() + 1).padStart(2, '0'); const day = String(dateObj.getUTCDate()).padStart(2, '0'); return `${year}-${month}-${day}`;
         }
-        function parseToMinutes(timeStr) { /* ... (sama) ... */
+        function parseToMinutes(timeStr) {
             if (!timeStr) return null;
             if (timeStr.includes(':') && !timeStr.toLowerCase().includes('m')) { const [hours, minutes] = timeStr.split(':').map(Number); return (hours * 60) + minutes; }
             const match = timeStr.match(/(\d+):(\d+)(?:\s*)(AM|PM)/i);
@@ -401,16 +426,31 @@
             });
         }
 
+        // ## KEMASKINI: FUNGSI MUAT NAIK REKOD (DENGAN TAHUN) ##
         async function muatNaikRekod() {
              loadingElement.style.display = 'block';
              rekodContainer.innerHTML = '<p id="loading">Memuat turun rekod...</p>'; 
              document.getElementById('pagination-controls').style.display = 'none'; 
+             
+             // Ambil tahun yang dipilih dari dropdown biru
+             const selectedYear = tahunDataInput.value;
+
             try {
-                const response = await fetch(`${API_SERVER_URL}/get-rekod`, { cache: 'no-cache' }); 
+                // HANTAR REQUEST KE SERVER DENGAN PARAMETER TAHUN
+                const response = await fetch(`${API_SERVER_URL}/get-rekod?year=${selectedYear}`, { cache: 'no-cache' }); 
+                
                 if (!response.ok) throw new Error(`Server Error: ${response.statusText}`);
                 let data = await response.json();
                  if (!Array.isArray(data)) { console.error("Data bukan array:", data); data = []; }
                 
+                // Jika data kosong DAN tahun dipilih bukan tahun semasa (Arkib kosong)
+                if (data.length === 0 && selectedYear != currentYear) {
+                    rekodContainer.innerHTML = `<p style="text-align:center; color:red; padding: 20px;">Tiada rekod arkib ditemui untuk tahun ${selectedYear}.</p>`;
+                    loadingElement.style.display = 'none';
+                    return;
+                }
+
+                // Logik Sort (Kekalkan logik asal yang kuat)
                 data.sort((a, b) => {
                      const timeA = parseTimestampToUTCMillis(a.timestamp);
                      const timeB = parseTimestampToUTCMillis(b.timestamp);
@@ -418,7 +458,7 @@
                      if (timeA === null) return 1;          
                      if (timeB === null) return -1;          
                      return timeB - timeA; 
-                 });
+                });
                  
                 semuaRekod = data;
                 rekodYangDitapis = semuaRekod;
@@ -434,7 +474,7 @@
             }
         }
 
-        function paparkanRekod() { /* ... (Sama seperti sebelum ini) ... */ 
+        function paparkanRekod() { 
             loadingElement.style.display = 'none'; rekodContainer.innerHTML = '';
             if (!rekodYangDitapis || rekodYangDitapis.length === 0) {
                 rekodContainer.innerHTML = '<p style="text-align: center;">Tiada rekod ditemui.</p>';
@@ -522,6 +562,12 @@
         }
 
         document.addEventListener('DOMContentLoaded', muatNaikRekod);
+        
+        // Listener bila tahun data ditukar (Semasa vs Arkib)
+        tahunDataInput.addEventListener('change', () => {
+             muatNaikRekod(); 
+        });
+
         filterTarikhInput.addEventListener('change', saringRekod);
         filterNamaInput.addEventListener('input', saringRekod);
         filterJenisInput.addEventListener('change', saringRekod);
